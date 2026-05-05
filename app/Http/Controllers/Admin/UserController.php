@@ -1,0 +1,91 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Models\Organization;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+
+class UserController extends Controller
+{
+    public function index()
+    {
+        $users = User::with('organization')
+            ->when(request('search'), fn($q, $s) => $q->where('username', 'like', "%$s%"))
+            ->when(request('organization_id'), fn($q, $o) => $q->where('organization_id', $o))
+            ->orderBy('username')
+            ->paginate(20);
+
+        $organizations = Organization::orderBy('name')->get();
+
+        return view('admin.users.index', compact('users', 'organizations'));
+    }
+
+    public function create()
+    {
+        return view('admin.users.create', [
+            'organizations' => Organization::orderBy('name')->get(),
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'username'        => 'required|string|max:100|unique:users,username',
+            'password'        => 'required|string|min:8',
+            'role'            => 'required|in:SSC_ADMIN,CHAIRPERSON,TREASURER,COLLECTOR,AUDITOR',
+            'organization_id' => 'nullable|exists:organizations,id',
+            'is_active'       => 'nullable|boolean',
+        ]);
+        $data['password_hash'] = Hash::make($data['password']);
+        $data['is_active']     = $request->boolean('is_active', true);
+        unset($data['password']);
+        User::create($data);
+        return redirect()->route('admin.users.index')->with('success', 'User created.');
+    }
+
+    public function edit(User $user)
+    {
+        return view('admin.users.edit', [
+            'user'          => $user,
+            'organizations' => Organization::orderBy('name')->get(),
+        ]);
+    }
+
+    public function update(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'username'        => 'required|string|max:100|unique:users,username,'.$user->id,
+            'role'            => 'required|in:SSC_ADMIN,CHAIRPERSON,TREASURER,COLLECTOR,AUDITOR',
+            'organization_id' => 'nullable|exists:organizations,id',
+            'is_active'       => 'nullable|boolean',
+            'password'        => 'nullable|string|min:8',
+        ]);
+        if (!empty($data['password'])) {
+            $data['password_hash'] = Hash::make($data['password']);
+        }
+        $data['is_active'] = $request->boolean('is_active', true);
+        unset($data['password']);
+        $user->update($data);
+        return redirect()->route('admin.users.index')->with('success', 'User updated.');
+    }
+
+    public function destroy(User $user)
+    {
+        if (auth()->id() === $user->id) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'You cannot delete your own account while signed in.');
+        }
+
+        try {
+            $user->delete();
+        } catch (\Throwable) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'User cannot be deleted because it is linked to transactions, approvals, or audit logs.');
+        }
+
+        return redirect()->route('admin.users.index')->with('success', 'User deleted.');
+    }
+}

@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    /* Typography */
+    --font-sans: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+
+    /* CMU Brand — Green scale */
+    --color-green-50:  #f0faf4;
+    --color-green-100: #d9f2e4;
+    --color-green-200: #b3e5c9;
+    --color-green-300: #7fd1a8;
+    --color-green-400: #4db87f;
+    --color-green-500: #27a05a;
+    --color-green-600: #1e8049;
+    --color-green-700: #186038;
+    --color-green-800: #124a2b;
+    --color-green-900: #0d4a1e;
+
+    /* CMU Brand — Olive */
+    --color-olive-400: #a8bc4e;
+    --color-olive-500: #8a9e3c;
+    --color-olive-600: #6e7e30;
+
+    /* CMU Brand — Gold */
+    --color-gold-400: #e0b840;
+    --color-gold-500: #d4a42a;
+    --color-gold-600: #b08820;
+
+    /* Layout tokens */
+    --sidebar-width: 260px;
+    --header-height: 64px;
+    --radius: 8px;
+    --radius-lg: 12px;
+}
+
+/* ── FCATS button utilities ───────────────────────────────────────── */
+@layer components {
+    .btn {
+        @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer;
+    }
+    .btn-green {
+        @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer bg-green-500 text-white hover:bg-green-600 active:bg-green-700;
+    }
+    .btn-outline {
+        @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer border border-green-500 text-green-600 hover:bg-green-50 active:bg-green-100;
+    }
+    .btn-ghost {
+        @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer text-gray-600 hover:bg-gray-100 active:bg-gray-200;
+    }
+    .btn-danger {
+        @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer bg-red-500 text-white hover:bg-red-600;
+    }
+    .btn-danger-soft {
+        @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer border border-red-300 text-red-600 hover:bg-red-50;
+    }
+    .btn-olive {
+        @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer text-white hover:opacity-90;
+        background-color: var(--color-olive-500);
+    }
+
+    /* Status badges */
+    .badge        { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium; }
+    .badge-green  { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700; }
+    .badge-gold   { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700; }
+    .badge-olive  { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-lime-100 text-lime-700; }
+    .badge-red    { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700; }
+    .badge-gray   { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600; }
+}
