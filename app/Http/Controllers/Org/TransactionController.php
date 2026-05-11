@@ -20,9 +20,9 @@ class TransactionController extends Controller
     {
         $transactions = Transaction::where('organization_id', auth()->user()->organization_id)
             ->with(['student', 'processedBy', 'feeProfile', 'remittance'])
-            ->when(request('search'), fn ($q, $s) => $q->where(function ($query) use ($s) {
+            ->when(request('search'), fn($q, $s) => $q->where(function ($query) use ($s) {
                 $query->where('or_number', 'like', "%{$s}%")
-                    ->orWhereHas('student', fn ($student) => $student
+                    ->orWhereHas('student', fn($student) => $student
                         ->where('student_number', 'like', "%{$s}%")
                         ->orWhere('first_name', 'like', "%{$s}%")
                         ->orWhere('last_name', 'like', "%{$s}%"));
@@ -219,10 +219,10 @@ class TransactionController extends Controller
     private function studentSearch(string $search)
     {
         return Student::where(function ($query) use ($search) {
-                $query->where('student_number', 'like', "%{$search}%")
-                    ->orWhere('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%");
-            })
+            $query->where('student_number', 'like', "%{$search}%")
+                ->orWhere('first_name', 'like', "%{$search}%")
+                ->orWhere('last_name', 'like', "%{$search}%");
+        })
             ->with('latestEnrollment.program')
             ->limit(10)
             ->get();
