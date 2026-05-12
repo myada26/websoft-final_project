@@ -35,10 +35,17 @@ class UserController extends Controller
         $data = $request->validate([
             'username'        => 'required|string|max:100|unique:users,username',
             'password'        => 'required|string|min:8',
-            'role'            => 'required|in:SSC_ADMIN,CHAIRPERSON,TREASURER,COLLECTOR,AUDITOR',
-            'organization_id' => 'nullable|exists:organizations,id',
+            'role'            => 'required|in:SSC_ADMIN,CHAIRPERSON,TREASURER,COLLECTOR,AUDITOR,SECRETARY',
+            'organization_id' => 'required|exists:organizations,id',
             'is_active'       => 'nullable|boolean',
         ]);
+        
+        // Validate organization-specific role constraints
+        $organization = Organization::find($data['organization_id']);
+        if ($organization->type === 'SSC' && !in_array($data['role'], ['SSC_ADMIN', 'CHAIRPERSON'])) {
+            return back()->with('error', 'Only SSC_ADMIN or CHAIRPERSON can be assigned to SSC organization.');
+        }
+        
         $data['password_hash'] = Hash::make($data['password']);
         $data['is_active']     = $request->boolean('is_active', true);
         unset($data['password']);
@@ -58,11 +65,18 @@ class UserController extends Controller
     {
         $data = $request->validate([
             'username'        => 'required|string|max:100|unique:users,username,'.$user->id,
-            'role'            => 'required|in:SSC_ADMIN,CHAIRPERSON,TREASURER,COLLECTOR,AUDITOR',
-            'organization_id' => 'nullable|exists:organizations,id',
+            'role'            => 'required|in:SSC_ADMIN,CHAIRPERSON,TREASURER,COLLECTOR,AUDITOR,SECRETARY',
+            'organization_id' => 'required|exists:organizations,id',
             'is_active'       => 'nullable|boolean',
             'password'        => 'nullable|string|min:8',
         ]);
+        
+        // Validate organization-specific role constraints
+        $organization = Organization::find($data['organization_id']);
+        if ($organization->type === 'SSC' && !in_array($data['role'], ['SSC_ADMIN', 'CHAIRPERSON'])) {
+            return back()->with('error', 'Only SSC_ADMIN or CHAIRPERSON can be assigned to SSC organization.');
+        }
+        
         if (!empty($data['password'])) {
             $data['password_hash'] = Hash::make($data['password']);
         }

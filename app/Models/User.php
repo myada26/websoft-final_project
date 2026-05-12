@@ -63,8 +63,14 @@ class User extends Authenticatable
 
     public function permissions(): BelongsToMany
     {
-        return $this->belongsToMany(Permission::class, 'user_permissions')
-                    ->withPivot('granted_at');
+        return $this->belongsToMany(Permission::class, 'role_permissions', 'role', 'permission_id')
+                    ->where('role_permissions.role', $this->role);
+    }
+
+    public function rolePermissions(): BelongsToMany
+    {
+        return $this->belongsToMany(Permission::class, 'role_permissions', 'role', 'permission_id')
+                    ->where('role_permissions.role', $this->role);
     }
 
     public function transactions(): HasMany
@@ -106,7 +112,11 @@ class User extends Authenticatable
 
     public function hasPermission(string $slug): bool
     {
-        return $this->permissions()->where('slug', $slug)->exists();
+        return \Illuminate\Support\Facades\DB::table('role_permissions')
+            ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
+            ->where('role_permissions.role', $this->role)
+            ->where('permissions.slug', $slug)
+            ->exists();
     }
 
     public function hasRole(string|array $roles): bool

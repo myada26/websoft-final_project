@@ -37,10 +37,14 @@ Route::prefix('admin')
         // Organizations
         Route::resource('organizations',  \App\Http\Controllers\Admin\OrganizationController::class)->except(['show']);
 
+        // Fee Profiles (SSC Admin only)
+        Route::resource('fee-profiles', \App\Http\Controllers\Admin\FeeProfileController::class)->except(['show']);
+
         // Students (read-only) + import
         Route::get('students',            [\App\Http\Controllers\Admin\StudentController::class, 'index'])->name('students.index');
         Route::post('students',           [\App\Http\Controllers\Admin\StudentController::class, 'store'])->name('students.store');
         Route::get('students/import',     [\App\Http\Controllers\Admin\StudentController::class, 'importForm'])->name('students.import');
+        Route::post('students/import',    [\App\Http\Controllers\Admin\StudentController::class, 'import'])->name('students.import.store');
 
         // Users
         Route::resource('users',          \App\Http\Controllers\Admin\UserController::class)->except(['show']);
@@ -89,7 +93,15 @@ Route::prefix('org')
         Route::post('remittances',                               [\App\Http\Controllers\Org\RemittanceController::class, 'store'])->middleware('role:TREASURER')->name('remittances.store');
         Route::get('remittances/{remittance}',                   [\App\Http\Controllers\Org\RemittanceController::class, 'show'])->middleware('role:TREASURER,AUDITOR')->name('remittances.show');
         Route::patch('remittances/{remittance}/verify',          [\App\Http\Controllers\Org\RemittanceController::class, 'verify'])->middleware('role:AUDITOR')->name('remittances.verify');
-        Route::patch('remittances/{remittance}/accept',          [\App\Http\Controllers\Org\RemittanceController::class, 'accept'])->middleware('role:AUDITOR')->name('remittances.accept');
+        Route::patch('remittances/{remittance}/accept',          [\App\Http\Controllers\Org\RemittanceController::class, 'accept'])->middleware('role:AUDITOR,CHAIRPERSON')->name('remittances.accept');
+
+        // Reports
+        Route::get('reports/sor', [\App\Http\Controllers\Org\ReportController::class, 'sor'])
+            ->middleware('role:CHAIRPERSON')
+            ->name('reports.sor');
+        Route::get('reports/sor/pdf', [\App\Http\Controllers\Org\ReportController::class, 'sorPdf'])
+            ->middleware('role:CHAIRPERSON')
+            ->name('reports.sor.pdf');
 
         // ── Events (Module 8 — FR-0026) ───────────────────────────────────────────
         Route::get('events', [\App\Http\Controllers\Org\EventController::class, 'index'])

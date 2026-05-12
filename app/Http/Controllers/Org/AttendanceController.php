@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\Event;
 use App\Models\EventAttendance;
 use App\Models\Student;
+use App\Models\StudentEnrollment;
 use App\Services\FineService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,49 +15,100 @@ use Illuminate\Support\Facades\DB;
 
 class AttendanceController extends Controller
 {
-    public function sheet(Event $event)
+    public function sheet(Event $event, Request $request)
     {
         abort_unless($event->organization_id === auth()->user()->organization_id, 403);
 
         $slots = $event->slots();
+        $search = $request->get('search', '');
 
-        // Paginate students but keep the full attendance map for the live counter
-        $allAttendanceRows = EventAttendance::where('event_id', $event->id)
-            ->whereIn('slot', $slots)
+        $user = auth()->user();
+        
+        $secretaryEnrollment = StudentEnrollment::where('student_id', $user->student_id)
+            ->whereHas('academicYear', fn($q) => $q->where('is_active', true))
+            ->with('program')
+            ->first();
+
+        $programId = $secretaryEnrollment?->program_id;
+
+        $enrolledStudents = StudentEnrollment::where('academic_year_id', $event->academic_year_id)
+            ->when($programId, fn($q) => $q->where('program_id', $programId))
+            ->with('student')
+            ->get()
+            ->pluck('student')
+            ->filter();
+
+        if ($search) {
+            $enrolledStudents = $enrolledStudents->filter(function($student) use ($search) {
+                return stripos($student->full_name, $search) !== false 
+                    || stripos($student->student_number, $search) !== false;
+            });
+        }
+
+        $studentsByYear = $enrolledStudents->groupBy(function($student) use ($event) {
+            $enrollment = StudentEnrollment::where('student_id', $student->id)
+                ->where('academic_year_id', $event->academic_year_id)
+                ->first();
+            return $enrollment?->year_level ?? 'N/A';
+        })->sortKeys();
+
+        $allStudentIds = StudentEnrollment::where('academic_year_id', $event->academic_year_id)
+            ->when($programId, fn($q) => $q->where('program_id', $programId))
+            ->pluck('student_id')
+            ->toArray();
+
+        foreach ($allStudentIds as $studentId) {
+            foreach ($slots as $slot) {
+                $exists = EventAttendance::where('event_id', $event->id)
+                    ->where('student_id', $studentId)
+                    ->where('slot', $slot)
+                    ->exists();
+                
+                if (!$exists) {
+                    EventAttendance::create([
+                        'event_id'   => $event->id,
+                        'student_id' => $studentId,
+                        'slot'       => $slot,
+                        'is_present' => false,
+                    ]);
+                }
+            }
+        }
+
+        $attendanceMap = [];
+        $allAttendance = EventAttendance::where('event_id', $event->id)
+            ->whereIn('student_id', $allStudentIds)
             ->get(['student_id', 'slot', 'is_present']);
 
-        // Build full map {studentId: {slot: bool}} for Alpine.js
-        $attendanceMap = [];
-        foreach ($allAttendanceRows as $row) {
+        foreach ($allAttendance as $row) {
             $attendanceMap[$row->student_id][$row->slot] = (bool) $row->is_present;
         }
 
-        // Student list (paginated for rendering, 100 per page)
-        $studentIds = array_keys($attendanceMap);
-        $students   = Student::whereIn('id', $studentIds)
+        $filteredStudentIds = $enrolledStudents->pluck('id')->toArray();
+        $students = Student::whereIn('id', $filteredStudentIds)
             ->orderBy('last_name')
             ->orderBy('first_name')
-            ->paginate(100)
+            ->paginate(50)
             ->withQueryString();
 
-        $user    = auth()->user();
         $canEdit = $event->status === 'DRAFT' && $user->hasRole('SECRETARY');
-
-        // Auditor may also toggle slots while event is PENDING_APPROVAL
         $auditorCanEdit = $event->status === 'PENDING_APPROVAL' && $user->hasRole('AUDITOR');
 
         $attendanceData = [
-            'attendance'     => $attendanceMap,
+            'attendance'    => $attendanceMap,
             'canEdit'        => $canEdit || $auditorCanEdit,
             'toggleBaseUrl'  => route('org.attendance.toggle-slot', [
                 'event'   => $event->id,
                 'student' => '__STUDENT__',
                 'slot'    => '__SLOT__',
             ]),
-            'totalStudents' => count($studentIds),
+            'totalStudents' => count($allStudentIds),
+            'programName'   => $secretaryEnrollment?->program?->name ?? 'All Students',
         ];
 
-        return view('org.attendance.sheet', compact('event', 'slots', 'students', 'attendanceData'));
+        return view('org.attendance.sheet', compact(
+            'event', 'slots', 'students', 'attendanceData', 'studentsByYear', 'search'
+        ));
     }
 
     public function toggleSlot(Request $request, Event $event, Student $student, string $slot): JsonResponse
@@ -66,7 +118,6 @@ class AttendanceController extends Controller
 
         $user = auth()->user();
 
-        // Secretary can only toggle DRAFT events; Auditor can toggle PENDING_APPROVAL
         if ($user->hasRole('SECRETARY')) {
             abort_unless($event->status === 'DRAFT', 403, 'Attendance can only be edited for DRAFT events.');
         } elseif ($user->hasRole('AUDITOR')) {
@@ -92,7 +143,6 @@ class AttendanceController extends Controller
                 'updated_at'          => now(),
             ]);
         } else {
-            // Student enrolled after event creation — create the row
             $record = EventAttendance::create([
                 'event_id'            => $event->id,
                 'student_id'          => $student->id,
@@ -104,7 +154,6 @@ class AttendanceController extends Controller
             ]);
         }
 
-        // Audit each individual slot toggle made by auditor (FR-0028)
         if ($user->hasRole('AUDITOR')) {
             AuditLog::create([
                 'user_id'     => $user->id,
@@ -131,7 +180,6 @@ class AttendanceController extends Controller
         abort_unless($event->status === 'DRAFT', 403, 'Only DRAFT events can be submitted.');
         abort_unless(auth()->user()->hasRole('SECRETARY'), 403);
 
-        // Capture immutable snapshot before auditor could edit (FR-0028)
         $snapshot = EventAttendance::where('event_id', $event->id)
             ->get(['student_id', 'slot', 'is_present'])
             ->groupBy('student_id')
@@ -168,7 +216,6 @@ class AttendanceController extends Controller
         $finesCount = 0;
 
         DB::transaction(function () use ($event, $request, &$finesCount) {
-            // Guard against double-compute
             if (!$event->fines()->exists()) {
                 $finesCount = app(FineService::class)->computeFines($event);
             }

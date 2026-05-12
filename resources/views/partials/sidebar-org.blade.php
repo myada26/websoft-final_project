@@ -37,6 +37,7 @@
                     ['route' => 'org.users.index', 'active' => 'org.users.*', 'label' => 'User Management', 'icon' => 'settings', 'roles' => ['CHAIRPERSON']],
                     ['route' => 'org.documentation', 'active' => 'org.documentation', 'label' => 'Documentation', 'icon' => 'book-open', 'roles' => ['CHAIRPERSON', 'TREASURER', 'COLLECTOR', 'AUDITOR', 'SECRETARY']],
                     ['route' => 'org.audit-logs.index', 'active' => 'org.audit-logs.*', 'label' => 'Audit Logs', 'icon' => 'file-clock', 'roles' => ['CHAIRPERSON', 'AUDITOR']],
+                    ['route' => 'org.reports.sor', 'active' => 'org.reports.sor', 'label' => 'Summary of Receipts', 'icon' => 'chart-bar', 'roles' => ['CHAIRPERSON']],
                 ],
             ];
         @endphp

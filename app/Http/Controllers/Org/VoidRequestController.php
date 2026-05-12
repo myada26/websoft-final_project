@@ -74,7 +74,11 @@ class VoidRequestController extends Controller
             return back()->with('error', 'Only pending void requests can be approved.');
         }
 
-        $voidRequest->loadMissing('transaction.studentFine');
+        // FR-0019: Chairperson cannot void their own transactions
+        $voidRequest->loadMissing('transaction');
+        if ($voidRequest->transaction->processed_by_user_id === auth()->user()->id) {
+            return back()->with('error', 'You cannot void your own transaction.');
+        }
         $voidRequest->transaction->update(['is_void' => true]);
 
         // Revert fine status to UNPAID when its payment transaction is voided (FR-0029)

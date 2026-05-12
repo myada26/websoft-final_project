@@ -18,7 +18,7 @@ class DashboardController extends Controller
         $orgId          = $org->id;
 
         $todayCount         = 0;
-        $totalCollected     = '0.00';
+        $totalCollected     = 0;
         $enrolledCount      = 0;
         $pendingVoidCount   = 0;
         $recentTransactions = collect();
@@ -34,13 +34,10 @@ class DashboardController extends Controller
                 ->where('is_void', false)
                 ->count();
 
-            $totalCollected = number_format(
-                Transaction::where('organization_id', $orgId)
-                    ->where('academic_year_id', $semId)
-                    ->where('is_void', false)
-                    ->sum('amount_paid'),
-                2
-            );
+            $totalCollected = Transaction::where('organization_id', $orgId)
+                ->where('academic_year_id', $semId)
+                ->where('is_void', false)
+                ->sum('amount_paid');
 
             $enrolledCount = $this->enrolledCount($org, $semId);
 
@@ -55,23 +52,17 @@ class DashboardController extends Controller
                 ->limit(10)
                 ->get();
 
-            $cashAmount = number_format(
-                Transaction::where('organization_id', $orgId)
-                    ->where('academic_year_id', $semId)
-                    ->where('payment_method', 'CASH')
-                    ->where('is_void', false)
-                    ->sum('amount_paid'),
-                2
-            );
+            $cashAmount = Transaction::where('organization_id', $orgId)
+                ->where('academic_year_id', $semId)
+                ->where('payment_method', 'CASH')
+                ->where('is_void', false)
+                ->sum('amount_paid');
 
-            $gcashAmount = number_format(
-                Transaction::where('organization_id', $orgId)
-                    ->where('academic_year_id', $semId)
-                    ->where('payment_method', 'GCASH')
-                    ->where('is_void', false)
-                    ->sum('amount_paid'),
-                2
-            );
+            $gcashAmount = Transaction::where('organization_id', $orgId)
+                ->where('academic_year_id', $semId)
+                ->where('payment_method', 'GCASH')
+                ->where('is_void', false)
+                ->sum('amount_paid');
         }
 
         [$chartLabels, $chartData] = $this->monthlyChart($orgId);

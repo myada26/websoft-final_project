@@ -24,6 +24,41 @@ class Organization extends Model
         ];
     }
 
+    protected static function booted()
+    {
+        static::creating(function ($organization) {
+            $organization->validateTypeConstraints();
+        });
+
+        static::updating(function ($organization) {
+            $organization->validateTypeConstraints();
+        });
+    }
+
+    public function validateTypeConstraints(): void
+    {
+        switch ($this->type) {
+            case 'COLLEGE_COUNCIL':
+                if (empty($this->linked_college_id)) {
+                    throw new \InvalidArgumentException('COLLEGE_COUNCIL must have a linked college.');
+                }
+                if (!empty($this->linked_department_id)) {
+                    throw new \InvalidArgumentException('COLLEGE_COUNCIL cannot have a linked department.');
+                }
+                break;
+            case 'DEPT_SOCIETY':
+                if (empty($this->linked_department_id)) {
+                    throw new \InvalidArgumentException('DEPT_SOCIETY must have a linked department.');
+                }
+                break;
+            case 'SSC':
+                if (!empty($this->linked_college_id) || !empty($this->linked_department_id)) {
+                    throw new \InvalidArgumentException('SSC cannot have linked college or department.');
+                }
+                break;
+        }
+    }
+
     // ── Relationships ─────────────────────────────────────────────────────
 
     public function college(): BelongsTo

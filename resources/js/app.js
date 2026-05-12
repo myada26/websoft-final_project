@@ -5,6 +5,8 @@ Alpine.data('transactionFlow', () => ({
     step: 1,
     student: null,
     feeProfiles: [],
+    unpaidFines: [],
+    selectedFines: [],
     searchResults: [],
     selectedFees: [],
     paymentMethod: 'CASH',
@@ -14,8 +16,29 @@ Alpine.data('transactionFlow', () => ({
 
     init() {
         this.feeProfiles = this.readJson('transaction-fee-profiles', []);
+        this.unpaidFines = this.readJson('transaction-unpaid-fines', []);
         this.searchResults = this.readJson('transaction-search-results', []);
         this.studentSearch = this.readJson('transaction-search-query', '');
+
+        document.querySelectorAll('.fine-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', () => this.handleFineChange());
+        });
+    },
+
+    handleFineChange() {
+        const checked = document.querySelectorAll('.fine-checkbox:checked');
+
+        if (this.selectedFees.length > 0 && checked.length > 0) {
+            checked.forEach(cb => cb.checked = false);
+            alert('Please select either a fee or a fine, not both. Process them as separate transactions.');
+            this.selectedFines = [];
+            return;
+        }
+
+        this.selectedFines = Array.from(checked).map(cb => {
+            const fine = this.unpaidFines.find(f => f.id === Number(cb.value));
+            return fine ? { id: cb.value, ...fine } : null;
+        }).filter(f => f !== null);
     },
 
     readJson(id, fallback) {
@@ -51,6 +74,11 @@ Alpine.data('transactionFlow', () => ({
     },
 
     toggleFee(id) {
+        if (this.selectedFines.length > 0) {
+            alert('Please select either a fee or a fine, not both. Process them as separate transactions.');
+            return;
+        }
+
         const fee = this.feeById(id);
         if (!fee) return;
 
@@ -67,7 +95,9 @@ Alpine.data('transactionFlow', () => ({
     },
 
     totalAmount() {
-        return this.selectedFees.reduce((sum, fee) => sum + Number.parseFloat(fee.amount || 0), 0);
+        const feesTotal = this.selectedFees.reduce((sum, fee) => sum + Number.parseFloat(fee.amount || 0), 0);
+        const finesTotal = this.selectedFines.reduce((sum, fine) => sum + Number.parseFloat(fine.amount || 0), 0);
+        return feesTotal + finesTotal;
     },
 
     canProceedStep1() {
@@ -75,17 +105,28 @@ Alpine.data('transactionFlow', () => ({
     },
 
     canProceedStep2() {
-        return this.selectedFees.length === 1;
+        const hasFee = this.selectedFees.length === 1;
+        const hasFine = this.selectedFines.length > 0;
+        return hasFee || hasFine;
     },
 
     canProceedStep3() {
         return this.paymentMethod && (this.paymentMethod !== 'GCASH' || this.gcashRef.trim().length > 0);
     },
 
+    hasSelectedFine() {
+        return this.selectedFines.length > 0;
+    },
+
+    selectedFineIds() {
+        return this.selectedFines.map(f => f.id);
+    },
+
     resetFlow() {
         this.step = 1;
         this.student = null;
         this.selectedFees = [];
+        this.selectedFines = [];
         this.paymentMethod = 'CASH';
         this.gcashRef = '';
         this.remarks = '';

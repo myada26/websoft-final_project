@@ -19,6 +19,23 @@ class AcademicYear extends Model
         ];
     }
 
+    protected static function booted()
+    {
+        static::creating(function ($academicYear) {
+            if ($academicYear->is_active) {
+                static::where('is_active', true)->update(['is_active' => false]);
+            }
+        });
+
+        static::updating(function ($academicYear) {
+            if ($academicYear->is_active) {
+                static::where('id', '!=', $academicYear->id)
+                    ->where('is_active', true)
+                    ->update(['is_active' => false]);
+            }
+        });
+    }
+
     // ── Scopes ────────────────────────────────────────────────────────────
 
     public function scopeActive($query)
@@ -41,5 +58,20 @@ class AcademicYear extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────
+
+    public static function activate(int $id): bool
+    {
+        $academicYear = static::findOrFail($id);
+        
+        // Deactivate all others
+        static::where('is_active', true)->update(['is_active' => false]);
+        
+        // Activate selected
+        $academicYear->update(['is_active' => true]);
+        
+        return true;
     }
 }

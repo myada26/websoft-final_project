@@ -18,9 +18,17 @@
         'program' => $sr->latestEnrollment?->program?->code ?? '',
         'hasPaid' => (bool) ($sr->hasPaidThisSemester ?? false),
     ])->values();
+
+    $unpaidFinesState = ($unpaidFines ?? collect())->map(fn($f) => [
+        'id' => $f->id,
+        'eventName' => $f->event?->name ?? 'Event Fine',
+        'eventDate' => $f->event?->date ? \Carbon\Carbon::parse($f->event->date)->format('M d, Y') : '',
+        'amount' => (float) $f->fine_amount,
+    ])->values();
 @endphp
 <script type="application/json" id="transaction-fee-profiles">@json($feeProfileState)</script>
 <script type="application/json" id="transaction-search-results">@json($searchResultState)</script>
+<script type="application/json" id="transaction-unpaid-fines">@json($unpaidFinesState)</script>
 <script type="application/json" id="transaction-search-query">@json(request('student', ''))</script>
 
 <div class="max-w-5xl mx-auto pb-10" x-data="transactionFlow">
@@ -138,6 +146,23 @@
                     <p class="text-[13px] text-green-400 mt-0.5 font-medium">Choose the applicable fee profiles</p>
                 </div>
                 <div class="p-6 space-y-3">
+                    @if($unpaidFines->count() > 0)
+                    <div class="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                        <h4 class="text-[14px] font-bold text-amber-800 mb-2">Outstanding Fines</h4>
+                        <div class="space-y-2">
+                            @foreach($unpaidFines as $fine)
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="fine_{{ $fine->id }}" value="{{ $fine->id }}" class="fine-checkbox w-4 h-4 text-green-600 rounded border-green-300 focus:ring-green-500">
+                                <label for="fine_{{ $fine->id }}" class="flex-1 text-[13px] font-medium text-green-700">
+                                    {{ $fine->event?->name ?? 'Event Fine' }} ({{ $fine->event?->date ? \Carbon\Carbon::parse($fine->event->date)->format('M d, Y') : '' }})
+                                </label>
+                                <span class="font-mono text-[14px] font-bold text-amber-700">₱{{ number_format($fine->fine_amount, 2) }}</span>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
                     @forelse($feeProfiles as $fp)
                     <button type="button" @click="toggleFee({{ $fp->id }})"
                         :class="hasFee({{ $fp->id }}) ? 'border-green-600 bg-[#f0f9f4]' : 'border-green-200 hover:border-green-600'"
@@ -259,12 +284,14 @@
                         </div>
                     </div>
 
-                    <form method="POST" action="{{ route('org.transactions.store') }}" id="pos-form">
+                    <form method="POST" :action="selectedFines.length > 0 ? '{{ route('org.transactions.fine') }}' : '{{ route('org.transactions.store') }}'" id="pos-form">
                         @csrf
                         <input type="hidden" name="student_id" :value="student?.id ?? ''">
                         <input type="hidden" name="payment_method" :value="paymentMethod">
                         <input type="hidden" name="gcash_reference" :value="gcashRef">
                         <input type="hidden" name="remarks" :value="remarks">
+                        <input type="hidden" name="amount_paid" :value="totalAmount()">
+                        <input type="hidden" name="student_fine_id" :value="selectedFines.length > 0 ? selectedFines[0].id : ''">
                         <template x-for="fee in selectedFees" :key="fee.id">
                             <input type="hidden" name="fee_profile_ids[]" :value="fee.id">
                         </template>
@@ -316,7 +343,7 @@
                     {{-- Selected fees --}}
                     <div>
                         <p class="text-[11.5px] font-bold text-green-300 uppercase tracking-widest mb-1.5">Selected Fees</p>
-                        <template x-if="selectedFees.length === 0">
+                        <template x-if="selectedFees.length === 0 && selectedFines.length === 0">
                             <p class="text-[13px] text-green-300 font-medium italic">None selected</p>
                         </template>
                         <div class="space-y-1">
@@ -324,6 +351,12 @@
                                 <div class="flex justify-between text-[13px]">
                                     <span class="text-green-400 font-medium truncate pr-2" x-text="fee.name"></span>
                                     <span class="font-mono font-bold text-green-800 shrink-0" x-text="'₱' + parseFloat(fee.amount).toFixed(2)"></span>
+                                </div>
+                            </template>
+                            <template x-for="fine in selectedFines" :key="fine.id">
+                                <div class="flex justify-between text-[13px]">
+                                    <span class="text-amber-600 font-medium truncate pr-2" x-text="fine.eventName"></span>
+                                    <span class="font-mono font-bold text-amber-700 shrink-0" x-text="'₱' + parseFloat(fine.amount).toFixed(2)"></span>
                                 </div>
                             </template>
                         </div>

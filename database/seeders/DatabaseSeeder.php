@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             PermissionSeeder::class,
+            RolePermissionSeeder::class,
         ]);
 
         $academicYearId = DB::table('academic_years')->insertGetId([
@@ -47,6 +48,15 @@ class DatabaseSeeder extends Seeder
             'updated_at' => now(),
         ]);
 
+        $bsmeProgramId = DB::table('programs')->insertGetId([
+            'department_id' => $departmentId,
+            'name' => 'BS Mechanical Engineering',
+            'code' => 'BSME',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         $sscOrgId = DB::table('organizations')->insertGetId([
             'name' => 'Supreme Student Council',
             'type' => 'SSC',
@@ -72,6 +82,7 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'SSC',
             'last_name' => 'Admin',
             'middle_name' => null,
+            'email' => 's.brigoli.boonjefferson@cmu.edu.ph',
             'created_source' => 'MANUAL',
             'created_at' => now(),
             'updated_at' => now(),
@@ -92,6 +103,7 @@ class DatabaseSeeder extends Seeder
                 'first_name' => $student['first_name'],
                 'last_name' => $student['last_name'],
                 'middle_name' => null,
+                'email' => 's.brigoli.boonjefferson@cmu.edu.ph',
                 'created_source' => 'MANUAL',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -116,6 +128,81 @@ class DatabaseSeeder extends Seeder
                 'academic_year_id' => $academicYearId,
                 'program_id' => $programId,
                 'year_level' => 3,
+                'is_regular' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        $bsmeStudents = [
+            ['student_number' => '2024-0002', 'first_name' => 'Carlos Fidel', 'last_name' => 'Castro', 'middle_name' => 'G.', 'year' => 2],
+            ['student_number' => '2024-0011', 'first_name' => 'James', 'last_name' => 'Yong', 'middle_name' => 'B.', 'year' => 1],
+            ['student_number' => '2024-0012', 'first_name' => 'Grace', 'last_name' => 'Chua', 'middle_name' => 'B.', 'year' => 2],
+            ['student_number' => '2024-0013', 'first_name' => 'Mark', 'last_name' => 'Sy', 'middle_name' => 'B.', 'year' => 4],
+            ['student_number' => '2024-0014', 'first_name' => 'Joy', 'last_name' => 'Tan', 'middle_name' => 'B.', 'year' => 1],
+            ['student_number' => '2024-0015', 'first_name' => 'Robert', 'last_name' => 'Lim', 'middle_name' => 'B.', 'year' => 3],
+            ['student_number' => '2024-0016', 'first_name' => 'Emily', 'last_name' => 'Go', 'middle_name' => 'B.', 'year' => 2],
+            ['student_number' => '2024-0017', 'first_name' => 'Kevin', 'last_name' => 'Ng', 'middle_name' => 'B.', 'year' => 1],
+            ['student_number' => '2024-0018', 'first_name' => 'Angela', 'last_name' => 'Lee', 'middle_name' => 'B.', 'year' => 2],
+            ['student_number' => '2024-0019', 'first_name' => 'Jonathan', 'last_name' => 'Co', 'middle_name' => 'B.', 'year' => 2],
+        ];
+
+        $bsmeStudentIds = [];
+        foreach ($bsmeStudents as $student) {
+            $bsmeStudentIds[$student['student_number']] = DB::table('students')->insertGetId([
+                'student_number' => $student['student_number'],
+                'first_name' => $student['first_name'],
+                'last_name' => $student['last_name'],
+                'middle_name' => $student['middle_name'],
+                'email' => strtolower($student['first_name'] . '.' . $student['last_name']) . '@cmu.edu.ph',
+                'created_source' => 'MANUAL',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        $bsceAdditionalStudents = [
+            ['student_number' => '2024-0001', 'first_name' => 'Boon Jefferson', 'last_name' => 'Brigoli', 'middle_name' => 'S.', 'year' => 2],
+            ['student_number' => '2024-0003', 'first_name' => 'Maria', 'last_name' => 'Santos', 'middle_name' => 'A.', 'year' => 3],
+            ['student_number' => '2024-0004', 'first_name' => 'John', 'last_name' => 'Dizon', 'middle_name' => 'A.', 'year' => 4],
+            ['student_number' => '2024-0005', 'first_name' => 'Ana', 'last_name' => 'Bautista', 'middle_name' => 'A.', 'year' => 2],
+            ['student_number' => '2024-0006', 'first_name' => 'Michael', 'last_name' => 'Ramos', 'middle_name' => 'A.', 'year' => 1],
+            ['student_number' => '2024-0007', 'first_name' => 'Sarah', 'last_name' => 'Torres', 'middle_name' => 'A.', 'year' => 1],
+            ['student_number' => '2024-0008', 'first_name' => 'David', 'last_name' => 'Garcia', 'middle_name' => 'A.', 'year' => 1],
+            ['student_number' => '2024-0009', 'first_name' => 'Lisa', 'last_name' => 'Mendoza', 'middle_name' => 'A.', 'year' => 3],
+            ['student_number' => '2024-0010', 'first_name' => 'Paul', 'last_name' => 'Cruz', 'middle_name' => 'A.', 'year' => 1],
+        ];
+
+        foreach ($bsceAdditionalStudents as $student) {
+            $studentId = DB::table('students')->insertGetId([
+                'student_number' => $student['student_number'],
+                'first_name' => $student['first_name'],
+                'last_name' => $student['last_name'],
+                'middle_name' => $student['middle_name'],
+                'email' => strtolower($student['first_name'] . '.' . $student['last_name']) . '@cmu.edu.ph',
+                'created_source' => 'MANUAL',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            DB::table('student_enrollments')->insert([
+                'student_id' => $studentId,
+                'academic_year_id' => $academicYearId,
+                'program_id' => $programId,
+                'year_level' => $student['year'],
+                'is_regular' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        foreach ($bsmeStudentIds as $studentId) {
+            $yearLevel = collect($bsmeStudents)->firstWhere('student_number', array_search($studentId, $bsmeStudentIds))['year'];
+            DB::table('student_enrollments')->insert([
+                'student_id' => $studentId,
+                'academic_year_id' => $academicYearId,
+                'program_id' => $bsmeProgramId,
+                'year_level' => $yearLevel,
                 'is_regular' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -183,6 +270,16 @@ class DatabaseSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            'SECRETARY_BSME' => [
+                'student_id' => $bsmeStudentIds['2024-0002'],
+                'organization_id' => $coeOrgId,
+                'username' => '2024-0002-COE',
+                'password_hash' => Hash::make('password'),
+                'role' => 'SECRETARY',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ];
 
         $userIds = [];
@@ -232,5 +329,9 @@ class DatabaseSeeder extends Seeder
         if ($userPermissionRows) {
             DB::table('user_permissions')->insert($userPermissionRows);
         }
+
+        $this->call([
+            EventsSeeder::class,
+        ]);
     }
 }

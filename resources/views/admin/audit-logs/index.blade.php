@@ -51,7 +51,7 @@
                 <tbody>
                     @forelse($logs as $log)
                     <tr class="border-b border-[#eaf0ec] hover:bg-[#f0f3f1]/50 transition-colors last:border-b-0">
-                        <td class="px-6 py-4 text-[12.5px] text-green-300 font-medium whitespace-nowrap">{{ $log->created_at->format('M d, Y H:i') }}</td>
+                        <td class="px-6 py-4 text-[12.5px] text-green-300 font-medium whitespace-nowrap">{{ $log->timestamp?->format('M d, Y H:i') ?? '—' }}</td>
                         <td class="px-6 py-4"><span class="font-mono text-[13px] font-bold text-green-600 bg-green-100 px-2 py-1 rounded-md">{{ $log->user?->username ?? '—' }}</span></td>
                         <td class="px-6 py-4">
                             @php

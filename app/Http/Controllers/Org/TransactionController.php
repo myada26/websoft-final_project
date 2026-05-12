@@ -57,7 +57,12 @@ class TransactionController extends Controller
                 ->get();
         }
 
-        return view('org.transactions.create', compact('feeProfiles', 'searchResults', 'searchQuery', 'unpaidFines'));
+        // Check fine collection window status
+        $fineWindowService = app(\App\Services\FineCollectionWindowService::class);
+        $fineWindow = $fineWindowService->getWindow(auth()->user()->organization_id);
+        $fineWindowOpen = $fineWindowService->canCollectFine(auth()->user()->organization_id);
+
+        return view('org.transactions.create', compact('feeProfiles', 'searchResults', 'searchQuery', 'unpaidFines', 'fineWindowOpen', 'fineWindow'));
     }
 
     public function search(Request $request)
@@ -125,6 +130,9 @@ class TransactionController extends Controller
             'timestamp'  => now(),
         ]);
 
+        // Send email receipt (FR-0031)
+        app(\App\Services\ReceiptEmailService::class)->send($transaction);
+
         return redirect()->route('org.transactions.show', $transaction)->with('success', 'Transaction recorded.');
     }
 
@@ -140,6 +148,20 @@ class TransactionController extends Controller
 
         $orgId          = auth()->user()->organization_id;
         $activeSemester = AcademicYear::where('is_active', true)->firstOrFail();
+
+        // Check if fine collection window is open
+        $fineWindowService = app(\App\Services\FineCollectionWindowService::class);
+        if (!$fineWindowService->canCollectFine($orgId)) {
+            return back()->with('error', 'Fine collection is currently closed. Please contact the Treasurer to open the fine collection window.');
+        }
+
+        // Verify full amount only - no partial payments for fines
+        if (!empty($data['student_fine_id'])) {
+            $studentFine = \App\Models\StudentFine::find($data['student_fine_id']);
+            if ($studentFine && $data['amount_paid'] < $studentFine->fine_amount) {
+                return back()->with('error', 'Partial payments are not allowed. Pay the full fine amount of ₱' . number_format($studentFine->fine_amount, 2));
+            }
+        }
 
         $transaction = DB::transaction(function () use ($data, $orgId, $activeSemester) {
             $sequence = \App\Models\OrSequence::lockForUpdate()->firstOrCreate(
@@ -187,6 +209,9 @@ class TransactionController extends Controller
             'ip_address' => $request->ip(),
             'timestamp'  => now(),
         ]);
+
+        // Send email receipt (FR-0031)
+        app(\App\Services\ReceiptEmailService::class)->send($transaction);
 
         return redirect()->route('org.transactions.show', $transaction)->with('success', 'Fine payment recorded.');
     }

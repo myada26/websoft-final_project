@@ -13,6 +13,7 @@ class Student extends Model
         'first_name',
         'last_name',
         'middle_name',
+        'email',
         'created_source',
     ];
 
@@ -66,5 +67,65 @@ class Student extends Model
     public function enrollmentFor(int $academicYearId): ?StudentEnrollment
     {
         return $this->enrollments()->where('academic_year_id', $academicYearId)->first();
+    }
+
+    // FR-0010: Cascading Membership Logic
+    // Student in Program X → member of:
+    //   - Dept Society (linked to Program's Department)
+    //   - College Council (linked to Program's College)
+    public function getMemberOrganizations(?int $academicYearId = null)
+    {
+        $activeYear = $academicYearId 
+            ? AcademicYear::find($academicYearId) 
+            : AcademicYear::where('is_active', true)->first();
+
+        if (!$activeYear) {
+            return collect();
+        }
+
+        // Get student's enrollment for active semester
+        $enrollment = $this->enrollments()
+            ->where('academic_year_id', $activeYear->id)
+            ->with('program.department.college')
+            ->first();
+
+        if (!$enrollment) {
+            return collect();
+        }
+
+        $program = $enrollment->program;
+        $department = $program->department;
+        $college = $department->college;
+
+        // Find organizations student is member of based on hierarchy
+        return Organization::where(function ($query) use ($college, $department) {
+            // Member of College Council (COLLEGE_COUNCIL linked to student's college)
+            $query->where('type', 'COLLEGE_COUNCIL')
+                ->where('linked_college_id', $college->id);
+        })->orWhere(function ($query) use ($department) {
+            // Member of Department Society (DEPT_SOCIETY linked to student's department)
+            $query->where('type', 'DEPT_SOCIETY')
+                ->where('linked_department_id', $department->id);
+        })->where('is_active', true)->get();
+    }
+
+    // Check if student is member of a specific organization
+    public function isMemberOf(int $organizationId, ?int $academicYearId = null): bool
+    {
+        return $this->getMemberOrganizations($academicYearId)->contains('id', $organizationId);
+    }
+
+    public function getHasPaidThisSemesterAttribute(): bool
+    {
+        $activeYear = AcademicYear::where('is_active', true)->first();
+        if (!$activeYear) {
+            return false;
+        }
+
+        return $this->transactions()
+            ->where('academic_year_id', $activeYear->id)
+            ->where('transaction_type', 'FEE')
+            ->where('is_void', false)
+            ->exists();
     }
 }

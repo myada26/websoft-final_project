@@ -67,6 +67,13 @@ class Event extends Model
         return $this->belongsTo(User::class, 'auditor_reviewed_by_user_id');
     }
 
+    public function students()
+    {
+        return $this->belongsToMany(Student::class, 'event_attendance')
+            ->withPivot('slot', 'is_present', 'recorded_by_user_id', 'recorded_at')
+            ->with('enrollments');
+    }
+
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by_user_id');
