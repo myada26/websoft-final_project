@@ -87,7 +87,7 @@ class LoginController extends Controller
 
     private function dashboardRoute(User $user): string
     {
-        if ($user->organization->type === 'SSC') {
+        if ($user->organization->type === 'UNIVERSITY_WIDE') {
             return route('admin.colleges.index');
         }
 

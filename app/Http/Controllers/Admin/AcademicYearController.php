@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AcademicYear;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class AcademicYearController extends Controller
 {
@@ -24,14 +25,25 @@ class AcademicYearController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'      => 'required|string|max:100|unique:academic_years,name',
-            'is_active' => 'nullable|boolean',
+            'year'       => 'required|string|max:20',
+            'semester'   => 'required|string|max:50',
+            'start_date' => 'nullable|date',
+            'end_date'   => 'nullable|date|after_or_equal:start_date',
+            'is_active'  => 'nullable|boolean',
         ]);
+
+        $data['name'] = $data['semester'] . ' ' . $data['year'];
+
+        $request->validate([
+            'name' => 'unique:academic_years,name',
+        ], [], ['name' => 'semester/year combination']);
+
         if ($request->boolean('is_active')) {
             AcademicYear::where('is_active', true)->update(['is_active' => false]);
         }
         $data['is_active'] = $request->boolean('is_active');
         AcademicYear::create($data);
+        Cache::forget('active_academic_year'); // [perf] invalidate header composer cache
         return redirect()->route('admin.academic-years.index')->with('success', 'Academic year created.');
     }
 
@@ -43,8 +55,18 @@ class AcademicYearController extends Controller
     public function update(Request $request, AcademicYear $academicYear)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:100|unique:academic_years,name,'.$academicYear->id,
+            'year'       => 'required|string|max:20',
+            'semester'   => 'required|string|max:50',
+            'start_date' => 'nullable|date',
+            'end_date'   => 'nullable|date|after_or_equal:start_date',
         ]);
+
+        $data['name'] = $data['semester'] . ' ' . $data['year'];
+
+        $request->validate([
+            'name' => 'unique:academic_years,name,' . $academicYear->id,
+        ], [], ['name' => 'semester/year combination']);
+
         $academicYear->update($data);
         return redirect()->route('admin.academic-years.index')->with('success', 'Academic year updated.');
     }
@@ -75,6 +97,7 @@ class AcademicYearController extends Controller
         
         AcademicYear::where('is_active', true)->update(['is_active' => false]);
         $academicYear->update(['is_active' => true]);
+        Cache::forget('active_academic_year'); // [perf] invalidate header composer cache
         return redirect()->route('admin.academic-years.index')->with('success', "'{$academicYear->name}' is now the active semester.");
     }
 }

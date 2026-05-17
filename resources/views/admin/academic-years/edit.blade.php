@@ -31,10 +31,35 @@
                     @endif
 
                     <div style="margin-bottom:16px">
-                        <label style="display:block;font-size:12.5px;font-weight:600;color:#0f1f17;margin-bottom:5px">Name <span style="color:#dc2626">*</span></label>
-                        <input type="text" name="name" value="{{ old('name', $academicYear->name) }}"
-                            style="width:100%;padding:9px 12px;border:1.5px solid {{ $errors->has('name') ? '#fca5a5' : '#dde8e1' }};border-radius:8px;font-size:13.5px;outline:none;box-sizing:border-box" required>
-                        @error('name')<div style="font-size:11.5px;color:#dc2626;margin-top:4px">{{ $message }}</div>@enderror
+                        <label style="display:block;font-size:12.5px;font-weight:600;color:#0f1f17;margin-bottom:5px">Academic Year <span style="color:#dc2626">*</span></label>
+                        <input type="text" name="year" value="{{ old('year', $academicYear->year) }}" placeholder="e.g. 2024-2025"
+                            style="width:100%;padding:9px 12px;border:1.5px solid {{ $errors->has('year') ? '#fca5a5' : '#dde8e1' }};border-radius:8px;font-size:13.5px;outline:none;box-sizing:border-box" required>
+                        @error('year')<div style="font-size:11.5px;color:#dc2626;margin-top:4px">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div style="margin-bottom:16px">
+                        <label style="display:block;font-size:12.5px;font-weight:600;color:#0f1f17;margin-bottom:5px">Semester <span style="color:#dc2626">*</span></label>
+                        <select name="semester" style="width:100%;padding:9px 12px;border:1.5px solid {{ $errors->has('semester') ? '#fca5a5' : '#dde8e1' }};border-radius:8px;font-size:13.5px;outline:none;box-sizing:border-box" required>
+                            @foreach(['1st Semester', '2nd Semester', 'Midyear'] as $opt)
+                                <option value="{{ $opt }}" @selected(old('semester', $academicYear->semester) === $opt)>{{ $opt }}</option>
+                            @endforeach
+                        </select>
+                        @error('semester')<div style="font-size:11.5px;color:#dc2626;margin-top:4px">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+                        <div>
+                            <label style="display:block;font-size:12.5px;font-weight:600;color:#0f1f17;margin-bottom:5px">Start Date</label>
+                            <input type="date" name="start_date" value="{{ old('start_date', $academicYear->start_date?->format('Y-m-d')) }}"
+                                style="width:100%;padding:9px 12px;border:1.5px solid {{ $errors->has('start_date') ? '#fca5a5' : '#dde8e1' }};border-radius:8px;font-size:13.5px;outline:none;box-sizing:border-box">
+                            @error('start_date')<div style="font-size:11.5px;color:#dc2626;margin-top:4px">{{ $message }}</div>@enderror
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12.5px;font-weight:600;color:#0f1f17;margin-bottom:5px">End Date</label>
+                            <input type="date" name="end_date" value="{{ old('end_date', $academicYear->end_date?->format('Y-m-d')) }}"
+                                style="width:100%;padding:9px 12px;border:1.5px solid {{ $errors->has('end_date') ? '#fca5a5' : '#dde8e1' }};border-radius:8px;font-size:13.5px;outline:none;box-sizing:border-box">
+                            @error('end_date')<div style="font-size:11.5px;color:#dc2626;margin-top:4px">{{ $message }}</div>@enderror
+                        </div>
                     </div>
 
                     @if($academicYear->is_active)

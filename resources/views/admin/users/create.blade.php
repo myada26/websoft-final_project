@@ -53,6 +53,7 @@
                             <option value="TREASURER" {{ old('role') === 'TREASURER' ? 'selected' : '' }}>Treasurer</option>
                             <option value="COLLECTOR" {{ old('role') === 'COLLECTOR' ? 'selected' : '' }}>Collector</option>
                             <option value="AUDITOR" {{ old('role') === 'AUDITOR' ? 'selected' : '' }}>Auditor</option>
+                            <option value="SECRETARY" {{ old('role') === 'SECRETARY' ? 'selected' : '' }}>Secretary</option>
                         </select>
                         @error('role')<div style="font-size:11.5px;color:#dc2626;margin-top:4px">{{ $message }}</div>@enderror
                     </div>

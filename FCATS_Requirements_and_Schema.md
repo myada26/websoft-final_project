@@ -59,10 +59,11 @@ The system must support a fixed 3-level academic hierarchy:
 #### FR-0003 · Organization Scope Definition
 > **Actor:** SSC Admin
 
-- [ ] Each Organization is mapped to exactly one level of the hierarchy:
-  - `COLLEGE_COUNCIL` → linked to a `College`
-  - `DEPT_SOCIETY` → linked to a `Department`
-  - `SSC` → not linked (top-level)
+- [ ] The system supports 4 types of organizations:
+  - **University-Wide** → Scope covers all students across the entire university (not linked to specific college/dept)
+  - **College Council** → Scope is limited to all students under a specific `College`
+  - **Class Organization** → Scope is limited to a specific `Department` (requires dropdown to select department when adding/editing)
+  - **Reserved** → 4th type reserved for future extensibility
 - [ ] Organizations cannot collect fees outside their scoped hierarchy
 
 ---
@@ -81,10 +82,7 @@ The system must support a fixed 3-level academic hierarchy:
 #### FR-0005 · Role-Based Account Creation & Permission Management
 > **Actor:** SSC Admin 
 
-**Core Concept:** Before any officer account is created, the organization must first submit a **Resolution** — a formal document listing the names and designated roles of officers authorized to collect fees (e.g., Treasurer, Chairperson) - personnaly. The SSC Admin reviews this resolution and uses it as the basis for account creation.
-
 - [ ] **Centralized Creation:** The SSC Admin is the sole authority for creating officer accounts across all organizations. No officer can self-register.
-- [ ] **Resolution Requirement:** The SSC Admin must attach or reference the approved Resolution before creating accounts for an organization.
 - [ ] **Role-Driven Access:** When creating an account, the SSC Admin assigns a fixed role (e.g., Treasurer, Chairperson, Auditor). Each role comes with pre-defined, non-editable permissions.
 - [ ] **No Individual Toggling:** Individual permission toggling is removed. Roles are assigned at account creation and can only be changed by the SSC Admin.
 - [ ] **Organization Isolation:** An officer account is tied to a specific organization and cannot operate outside it.
@@ -102,6 +100,10 @@ The system must support a fixed 3-level academic hierarchy:
 - [ ] An Engineering officer **cannot** view, search, or modify data belonging to Nursing
 - [ ] Isolation must be enforced at the **API/query level**, not just the UI level
 - [ ] Attempting cross-org access returns a `403 Forbidden` response
+- [ ] **Hierarchical Visibility:**
+  - **University-Wide:** Can view all students across all colleges.
+  - **College Council:** Can view all students enrolled in any department/program under their specific College.
+  - **Class Organization:** Can view strictly only the students enrolled in programs under their specific Department.
 
 ---
 
@@ -110,7 +112,7 @@ The system must support a fixed 3-level academic hierarchy:
 #### FR-0007 · Student Identity Separation
 
 - [ ] System uses a hidden internal `student_id` (PK) for all database relationships
-- [ ] Officers search using the user-facing `student_number` (School ID, e.g., `2023123456`)
+- [ ] Officers search using the user-facing `student_number` (10 digits, no dash: first 4 = year, remaining 6 = randomized, e.g., `2024123456`)
 - [ ] The two fields are never exposed interchangeably in the UI
 
 ---
@@ -118,7 +120,8 @@ The system must support a fixed 3-level academic hierarchy:
 #### FR-0008 · Semester-Based Bulk Import *(SSC)*
 > **Actor:** SSC Admin
 
-- [ ] SSC uploads the student enrollment list (CSV/Excel) for the Active Semester
+- [ ] SSC uploads the student enrollment list via a **downloadable Excel template** for the Active Semester
+- [ ] The template must strictly match these headers: `Student ID Number`, `Last Name`, `First Name`, `Name Extension`, `Middle Name`, `College`, `Department`, `Program`, `Year Level`, `Email`, `Student Type`.
 - [ ] Each import creates a new `STUDENT_ENROLLMENTS` record per student
 - [ ] **Shifting Logic:** If a student shifts programs, the new enrollment record reflects the new program; the old record is **preserved in history** (never deleted)
 - [ ] Duplicate detection: if `(student_id, academic_year_id)` already exists, skip or prompt
@@ -136,6 +139,7 @@ Context-aware form that locks fields based on the officer's scope:
 | **Dept Chair** | 🔒 Locked | 🔒 Locked (own dept) | Selectable (within dept) |
 
 - [ ] Form must prevent selecting Programs outside the officer's college/department
+- [ ] The "Enroll Student" modal must capture all standard fields: Student ID Number, Last Name, First Name, Name Extension (Optional), Middle Name (Optional), College, Department, Program, Year Level, Email, and Student Type.
 - [ ] Manual entries are flagged as `created_source = 'MANUAL'`
 
 ---
@@ -174,10 +178,11 @@ Student enrolled in Program X (Active Semester)
 
 **Core Concept:** The SSC Admin is the sole authority for creating and managing fee profiles for all organizations. Officers and Chairpersons have no access to create, edit, or deactivate fee amounts — they can only collect based on what has been configured.
 
-- [ ] SSC Admin encodes the approved fee amounts per organization, per student category, per semester.
+- [ ] SSC Admin encodes the approved fee amounts per organization using a **Centralized Bulk Grid UI**.
+- [ ] **UI Layout:** Each row represents one organization in the format: `Organization Name | Regular Fee | Extendee Fee | Irregular Fee | Save Changes`.
+- [ ] **Confirmation Requirement:** Because fees are typically a one-time setup for the semester, clicking the `Save Changes` button must trigger a strict confirmation modal (e.g., "Are you sure you want to save these fee changes for [Org Name]?").
 - [ ] Once saved, fee profiles are locked — no officer-level role can modify them.
-- [ ] During a POS transaction, the fee amount is automatically fetched and read-only.
-- [ ] The officer only selects the student category (Regular, Irregular, Extendee) — the amount populates itself.
+- [ ] During an org-level POS transaction, the fee amount specific to that organization is automatically fetched and read-only based on the selected student category.
 
 ---
 
@@ -186,12 +191,12 @@ Student enrolled in Program X (Active Semester)
 | Category | Description | Rate Behavior |
 |---|---|---|
 | `REGULAR` | Standard enrolled student | Single fixed amount |
-| `IRREGULAR` | Varying student load | Multiple named options (e.g., "Irregular Rate A") |
+| `IRREGULAR` | Varying student load | Single fixed amount defined in the Admin grid |
 | `EXTENDEE` | Extended/overloading | Separate defined rate |
 | `EXEMPTED` | Exempt from payment | Zero rate (`0.00`) |
 
 - [ ] Officer selects the applicable category during POS transaction
-- [ ] Irregular: displays a **checklist** of available options; officer selects one
+- [ ] Amount is populated directly based on the organization's fee profile for that category
 
 ---
 
@@ -219,6 +224,11 @@ Student enrolled in Program X (Active Semester)
 #### FR-0014 · Context-Aware Student Search
 
 - [ ] Search results are **filtered by Active Semester** automatically
+- [ ] **Enrolled Students View:** Must include comprehensive multi-field sorting capabilities.
+- [ ] **Context-Aware Cascading Filter Bar:** The filtering bar at the top of the Enrolled Students page adapts to the officer's organization type:
+  - **University-Wide:** Displays `College → Department → Program → Year Level`. Options cascade accordingly.
+  - **College Council:** Displays `Department → Program → Year Level` (College is implicitly locked to their own).
+  - **Class Organization:** Displays `Program → Year Level` (College and Department are implicitly locked to their own).
 - [ ] Displays student's enrollment status within the officer's organization scope
 - [ ] If a student has shifted out of the college:
   - The old college's officer sees status: **"Not Enrolled"**
@@ -407,8 +417,9 @@ Officer clicks "Create Remittance"
 
 - [ ] UI displays a table of members with checkbox columns for each slot (2 for HALF_DAY, 4 for FULL_DAY)
 - [ ] Each unchecked checkbox = one "signature" missed = ₱10 fine
-- [ ] Member list is auto-pulled from `STUDENT_ENROLLMENTS` for the active semester/organization
-- [ ] Secretary can check/uncheck freely while status is `DRAFT`
+- [ ] Member list is auto-pulled from `STUDENT_ENROLLMENTS` for the active semester, **strictly adhering to the hierarchical visibility defined in FR-0006** (e.g., College Councils populate all college students, Department Societies populate only department students).
+- [ ] Secretary can check/uncheck freely. Checkbox behavior in the UI must accurately track and reflect the visual state.
+- [ ] **Save as Draft:** Provide a distinct "Save as Draft" feature before final submission, allowing the Secretary to save work-in-progress without forwarding to the Auditor/Chairperson yet.
 - [ ] Cannot submit until at least one row is interacted with
 - [ ] Becomes read-only for Secretary once submitted (`PENDING_APPROVAL`)
 - [ ] Displays a real-time running count of present vs total members via JS
@@ -722,7 +733,7 @@ Step 4: Confirm → Receipt generated
 |---|---|---|
 | `id` | Integer | PK |
 | `name` | String | e.g., `"Engineering Council"` |
-| `type` | Enum | `SSC` · `COLLEGE_COUNCIL` · `DEPT_SOCIETY` |
+| `type` | Enum | `UNIVERSITY_WIDE` · `COLLEGE_COUNCIL` · `CLASS_ORG` · `RESERVED` |
 | `linked_college_id` | FK → `COLLEGES(id)` | Nullable · `ON DELETE RESTRICT` |
 | `linked_department_id` | FK → `DEPARTMENTS(id)` | Nullable · `ON DELETE RESTRICT` |
 | `is_active` | Boolean | |
@@ -731,8 +742,8 @@ Step 4: Confirm → Receipt generated
 
 **Constraints:**
 - If `type = 'COLLEGE_COUNCIL'` → `linked_college_id IS NOT NULL` AND `linked_department_id IS NULL`
-- If `type = 'DEPT_SOCIETY'` → `linked_department_id IS NOT NULL`
-- If `type = 'SSC'` → both linked IDs are `NULL`
+- If `type = 'CLASS_ORG'` → `linked_department_id IS NOT NULL`
+- If `type = 'UNIVERSITY_WIDE'` → both linked IDs are `NULL`
 
 ---
 
@@ -795,6 +806,7 @@ Step 4: Confirm → Receipt generated
 | `student_number` | String | Unique — School ID shown in UI (e.g., `"2023-001"`) |
 | `first_name` | String | |
 | `last_name` | String | |
+| `name_extension` | String | Nullable (e.g., Jr., Sr., III) |
 | `middle_name` | String | Nullable |
 | `email` | String | Nullable — For receipt delivery (FR-0031) |
 | `created_source` | Enum | `SSC_BULK` · `MANUAL` |
@@ -813,7 +825,7 @@ Step 4: Confirm → Receipt generated
 | `academic_year_id` | FK → `ACADEMIC_YEARS(id)` | `ON DELETE RESTRICT` |
 | `program_id` | FK → `PROGRAMS(id)` | `ON DELETE RESTRICT` |
 | `year_level` | Integer | |
-| `is_regular` | Boolean | `TRUE` = Regular student |
+| `student_type` | Enum | `REGULAR` · `IRREGULAR` · `EXTENDEE` |
 | `created_at` | Datetime | |
 | `updated_at` | Datetime | |
 

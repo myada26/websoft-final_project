@@ -3,7 +3,7 @@
 @section('page-title', 'Reports')
 
 @section('content')
-<div class="max-w-5xl mx-auto pb-10">
+<div class="page-shell">
 
     <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
         <div>

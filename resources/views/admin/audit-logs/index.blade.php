@@ -3,7 +3,7 @@
 @section('page-title', 'Audit Logs')
 
 @section('content')
-<div class="max-w-6xl mx-auto pb-10">
+<div class="page-shell">
 
     <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
         <div>
@@ -46,6 +46,7 @@
                         <th class="px-6 py-3.5 text-[11.5px] font-bold text-green-300 uppercase tracking-widest">Action</th>
                         <th class="px-6 py-3.5 text-[11.5px] font-bold text-green-300 uppercase tracking-widest">Module</th>
                         <th class="px-6 py-3.5 text-[11.5px] font-bold text-green-300 uppercase tracking-widest">Details</th>
+                        <th class="px-6 py-3.5 text-[11.5px] font-bold text-green-300 uppercase tracking-widest"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -70,7 +71,11 @@
                             <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[11.5px] font-bold {{ $cls }}">{{ $log->action }}</span>
                         </td>
                         <td class="px-6 py-4 text-[13.5px] font-semibold text-green-400">{{ $log->entity_type ?? '—' }}</td>
-                        <td class="px-6 py-4 text-[13px] text-green-400 font-medium max-w-xs truncate">{{ $log->description ?? '—' }}</td>
+                        <td class="px-6 py-4 text-[13px] text-green-400 font-medium max-w-xs truncate">{{ $log->description ?? ($log->details ? Str::limit(json_encode($log->details), 60) : '—') }}</td>
+                        <td class="px-6 py-4">
+                            <a href="{{ route('admin.audit-logs.show', $log) }}"
+                               class="text-[11.5px] font-bold text-green-600 hover:text-green-800 hover:underline whitespace-nowrap">View →</a>
+                        </td>
                     </tr>
                     @empty
                     <tr><td colspan="5" class="px-6 py-14 text-center text-[14px] font-semibold text-green-400">No log entries found</td></tr>

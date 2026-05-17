@@ -41,16 +41,17 @@
                         <select name="type" id="org-type" onchange="updateScopeFields(this.value)"
                             style="width:100%;padding:9px 12px;border:1.5px solid {{ $errors->has('type') ? '#fca5a5' : '#dde8e1' }};border-radius:8px;font-size:13.5px;outline:none;box-sizing:border-box;background:white" required>
                             <option value="">— Select Type —</option>
-                            <option value="SSC" {{ old('type') === 'SSC' ? 'selected' : '' }}>SSC — University-wide Council</option>
-                            <option value="COLLEGE_COUNCIL" {{ old('type') === 'COLLEGE_COUNCIL' ? 'selected' : '' }}>COLLEGE_COUNCIL — College-level Council</option>
-                            <option value="DEPT_SOCIETY" {{ old('type') === 'DEPT_SOCIETY' ? 'selected' : '' }}>DEPT_SOCIETY — Department Society</option>
+                            <option value="UNIVERSITY_WIDE" {{ old('type') === 'UNIVERSITY_WIDE' ? 'selected' : '' }}>University-Wide — All students across the university</option>
+                            <option value="COLLEGE_COUNCIL" {{ old('type') === 'COLLEGE_COUNCIL' ? 'selected' : '' }}>College Council — Scoped to a specific College</option>
+                            <option value="CLASS_ORG" {{ old('type') === 'CLASS_ORG' ? 'selected' : '' }}>Class Organization — Scoped to a specific Department</option>
+                            <option value="RESERVED" {{ old('type') === 'RESERVED' ? 'selected' : '' }}>Reserved — Future use</option>
                         </select>
                         @error('type')<div style="font-size:11.5px;color:#dc2626;margin-top:4px">{{ $message }}</div>@enderror
                     </div>
 
                     <div id="college-field" style="margin-bottom:16px;display:{{ old('type') === 'COLLEGE_COUNCIL' ? 'block' : 'none' }}">
-                        <label style="display:block;font-size:12.5px;font-weight:600;color:#0f1f17;margin-bottom:5px">Parent College</label>
-                        <select name="college_id" style="width:100%;padding:9px 12px;border:1.5px solid #dde8e1;border-radius:8px;font-size:13.5px;outline:none;box-sizing:border-box;background:white">
+                        <label style="display:block;font-size:12.5px;font-weight:600;color:#0f1f17;margin-bottom:5px">Linked College <span style="color:#dc2626">*</span></label>
+                        <select name="college_id" style="width:100%;padding:9px 12px;border:1.5px solid {{ $errors->has('college_id') ? '#fca5a5' : '#dde8e1' }};border-radius:8px;font-size:13.5px;outline:none;box-sizing:border-box;background:white">
                             <option value="">— Select College —</option>
                             @foreach($colleges as $college)
                                 <option value="{{ $college->id }}" {{ old('college_id') == $college->id ? 'selected' : '' }}>{{ $college->code }} — {{ $college->name }}</option>
@@ -59,9 +60,9 @@
                         @error('college_id')<div style="font-size:11.5px;color:#dc2626;margin-top:4px">{{ $message }}</div>@enderror
                     </div>
 
-                    <div id="dept-field" style="margin-bottom:16px;display:{{ old('type') === 'DEPT_SOCIETY' ? 'block' : 'none' }}">
-                        <label style="display:block;font-size:12.5px;font-weight:600;color:#0f1f17;margin-bottom:5px">Parent Department</label>
-                        <select name="department_id" style="width:100%;padding:9px 12px;border:1.5px solid #dde8e1;border-radius:8px;font-size:13.5px;outline:none;box-sizing:border-box;background:white">
+                    <div id="dept-field" style="margin-bottom:16px;display:{{ old('type') === 'CLASS_ORG' ? 'block' : 'none' }}">
+                        <label style="display:block;font-size:12.5px;font-weight:600;color:#0f1f17;margin-bottom:5px">Linked Department <span style="color:#dc2626">*</span></label>
+                        <select name="department_id" style="width:100%;padding:9px 12px;border:1.5px solid {{ $errors->has('department_id') ? '#fca5a5' : '#dde8e1' }};border-radius:8px;font-size:13.5px;outline:none;box-sizing:border-box;background:white">
                             <option value="">— Select Department —</option>
                             @foreach($departments as $dept)
                                 <option value="{{ $dept->id }}" {{ old('department_id') == $dept->id ? 'selected' : '' }}>{{ $dept->code }} — {{ $dept->name }}</option>
@@ -85,7 +86,7 @@
 <script>
 function updateScopeFields(type) {
     document.getElementById('college-field').style.display = type === 'COLLEGE_COUNCIL' ? 'block' : 'none';
-    document.getElementById('dept-field').style.display = type === 'DEPT_SOCIETY' ? 'block' : 'none';
+    document.getElementById('dept-field').style.display = type === 'CLASS_ORG' ? 'block' : 'none';
 }
 </script>
 @endpush

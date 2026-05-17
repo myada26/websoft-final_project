@@ -9,6 +9,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
+    // Explicit PK declarations — prevents Eloquent from relying on default inference,
+    // which can return a string when the DB driver doesn't cast bigint columns.
+    protected $primaryKey  = 'id';
+    protected $keyType     = 'int';
+    public    $incrementing = true;
+
     protected $fillable = [
         'student_id',
         'organization_id',
@@ -43,11 +49,9 @@ class User extends Authenticatable
         return 'password_hash';
     }
 
-    // Login identifier is username, not email
-    public function getAuthIdentifierName(): string
-    {
-        return 'username';
-    }
+    // getAuthIdentifierName() intentionally NOT overridden — default returns 'id'.
+    // Auth::id() must return the integer primary key so audit_log.user_id (bigint) is populated correctly.
+    // Login uses Auth::login($user) directly (no credential lookup), so username lookup is unaffected.
 
     // ── Relationships ─────────────────────────────────────────────────────
 

@@ -3,16 +3,16 @@
 @section('page-title', 'User Management')
 
 @section('content')
-<div class="max-w-6xl mx-auto pb-10" x-data="{ open: false }">
+<div class="page-shell" x-data="{ open: false }">
 
     <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
         <div>
             <h2 class="text-[22px] font-bold text-green-800">User Management</h2>
             <p class="text-[13.5px] text-green-400 mt-1 font-medium">All system users across all organizations</p>
         </div>
-        <button @click="open = true" class="px-4 py-2 rounded-lg text-[13.5px] font-bold flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white border-2 border-transparent transition-all shadow-sm">
+        <a href="{{ route('admin.users.create') }}" class="px-4 py-2 rounded-lg text-[13.5px] font-bold flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white border-2 border-transparent transition-all shadow-sm">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14"/></svg>Add User
-        </button>
+        </a>
     </div>
 
     <div class="bg-white rounded-xl border border-green-200 shadow-sm overflow-hidden">

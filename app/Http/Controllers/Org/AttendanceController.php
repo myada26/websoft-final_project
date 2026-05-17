@@ -8,6 +8,7 @@ use App\Models\Event;
 use App\Models\EventAttendance;
 use App\Models\Student;
 use App\Models\StudentEnrollment;
+use App\Services\AttendancePopulationService;
 use App\Services\FineService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,96 +20,95 @@ class AttendanceController extends Controller
     {
         abort_unless($event->organization_id === auth()->user()->organization_id, 403);
 
-        $slots = $event->slots();
-        $search = $request->get('search', '');
+        // Route model binding does not eager-load relations — load explicitly (NFR-002)
+        $event->loadMissing('organization');
 
-        $user = auth()->user();
-        
-        $secretaryEnrollment = StudentEnrollment::where('student_id', $user->student_id)
-            ->whereHas('academicYear', fn($q) => $q->where('is_active', true))
-            ->with('program')
-            ->first();
+        $org    = $event->organization;
+        $slots  = $event->slots();
+        $search = $request->input('search', '');
+        $user   = auth()->user();
 
-        $programId = $secretaryEnrollment?->program_id;
+        // Ensure attendance rows exist for all eligible students (safe to call repeatedly)
+        app(AttendancePopulationService::class)->populate($event);
 
-        $enrolledStudents = StudentEnrollment::where('academic_year_id', $event->academic_year_id)
-            ->when($programId, fn($q) => $q->where('program_id', $programId))
-            ->with('student')
-            ->get()
-            ->pluck('student')
-            ->filter();
-
-        if ($search) {
-            $enrolledStudents = $enrolledStudents->filter(function($student) use ($search) {
-                return stripos($student->full_name, $search) !== false 
-                    || stripos($student->student_number, $search) !== false;
-            });
-        }
-
-        $studentsByYear = $enrolledStudents->groupBy(function($student) use ($event) {
-            $enrollment = StudentEnrollment::where('student_id', $student->id)
-                ->where('academic_year_id', $event->academic_year_id)
-                ->first();
-            return $enrollment?->year_level ?? 'N/A';
-        })->sortKeys();
-
-        $allStudentIds = StudentEnrollment::where('academic_year_id', $event->academic_year_id)
-            ->when($programId, fn($q) => $q->where('program_id', $programId))
+        // Base enrollment query for this event's semester — scoped per FR-0006 / FR-0027
+        $allStudentIds = $this->scopedEnrollmentQuery($event->academic_year_id, $org)
             ->pluck('student_id')
             ->toArray();
 
-        foreach ($allStudentIds as $studentId) {
-            foreach ($slots as $slot) {
-                $exists = EventAttendance::where('event_id', $event->id)
-                    ->where('student_id', $studentId)
-                    ->where('slot', $slot)
-                    ->exists();
-                
-                if (!$exists) {
-                    EventAttendance::create([
-                        'event_id'   => $event->id,
-                        'student_id' => $studentId,
-                        'slot'       => $slot,
-                        'is_present' => false,
-                    ]);
-                }
-            }
-        }
-
+        // Attendance map keyed by [student_id][slot]
         $attendanceMap = [];
-        $allAttendance = EventAttendance::where('event_id', $event->id)
-            ->whereIn('student_id', $allStudentIds)
-            ->get(['student_id', 'slot', 'is_present']);
-
-        foreach ($allAttendance as $row) {
+        foreach (
+            EventAttendance::where('event_id', $event->id)
+                ->whereIn('student_id', $allStudentIds)
+                ->get(['student_id', 'slot', 'is_present'])
+            as $row
+        ) {
             $attendanceMap[$row->student_id][$row->slot] = (bool) $row->is_present;
         }
 
-        $filteredStudentIds = $enrolledStudents->pluck('id')->toArray();
-        $students = Student::whereIn('id', $filteredStudentIds)
+        // Paginated student list (for search view)
+        $studentQuery = Student::whereIn('id', $allStudentIds)
             ->orderBy('last_name')
-            ->orderBy('first_name')
-            ->paginate(50)
-            ->withQueryString();
+            ->orderBy('first_name');
 
-        $canEdit = $event->status === 'DRAFT' && $user->hasRole('SECRETARY');
+        if ($search) {
+            $studentQuery->where(fn($q) =>
+                $q->where('last_name',       'like', "%{$search}%")
+                  ->orWhere('first_name',    'like', "%{$search}%")
+                  ->orWhere('student_number','like', "%{$search}%")
+            );
+        }
+
+        $students = $studentQuery->paginate(50)->withQueryString();
+
+        // Year-level grouping for the non-search view (single eager-loaded query)
+        $studentsByYear = $this->scopedEnrollmentQuery($event->academic_year_id, $org)
+            ->with('student')
+            ->get()
+            ->groupBy('year_level')
+            ->sortKeys()
+            ->map(fn($enrollments) => $enrollments->pluck('student')->filter()->sortBy('last_name')->values());
+
+        $canEdit        = $event->status === 'DRAFT' && $user->hasRole('SECRETARY');
         $auditorCanEdit = $event->status === 'PENDING_APPROVAL' && $user->hasRole('AUDITOR');
 
         $attendanceData = [
             'attendance'    => $attendanceMap,
-            'canEdit'        => $canEdit || $auditorCanEdit,
-            'toggleBaseUrl'  => route('org.attendance.toggle-slot', [
+            'canEdit'       => $canEdit || $auditorCanEdit,
+            'toggleBaseUrl' => route('org.attendance.toggle-slot', [
                 'event'   => $event->id,
                 'student' => '__STUDENT__',
                 'slot'    => '__SLOT__',
             ]),
             'totalStudents' => count($allStudentIds),
-            'programName'   => $secretaryEnrollment?->program?->name ?? 'All Students',
+            'programName'   => $org->name,
         ];
 
         return view('org.attendance.sheet', compact(
             'event', 'slots', 'students', 'attendanceData', 'studentsByYear', 'search'
         ));
+    }
+
+    /**
+     * Returns a StudentEnrollment query filtered to the org's visibility scope (FR-0006).
+     */
+    private function scopedEnrollmentQuery(int $academicYearId, \App\Models\Organization $org): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = StudentEnrollment::where('academic_year_id', $academicYearId);
+
+        if ($org->type === 'COLLEGE_COUNCIL' && $org->linked_college_id) {
+            $query->whereHas('program.department', fn($q) =>
+                $q->where('college_id', $org->linked_college_id)
+            );
+        } elseif ($org->type === 'CLASS_ORG' && $org->linked_department_id) {
+            $query->whereHas('program', fn($q) =>
+                $q->where('department_id', $org->linked_department_id)
+            );
+        }
+        // UNIVERSITY_WIDE: no extra filter — all enrolled students are eligible
+
+        return $query;
     }
 
     public function toggleSlot(Request $request, Event $event, Student $student, string $slot): JsonResponse
@@ -172,6 +172,15 @@ class AttendanceController extends Controller
         }
 
         return response()->json(['is_present' => $record->is_present]);
+    }
+
+    public function saveDraft(Request $request, Event $event): \Illuminate\Http\JsonResponse
+    {
+        abort_unless($event->organization_id === auth()->user()->organization_id, 403);
+        abort_unless($event->status === 'DRAFT', 403, 'Only DRAFT events can be saved.');
+        abort_unless(auth()->user()->hasRole('SECRETARY'), 403);
+
+        return response()->json(['saved' => true, 'at' => now()->format('H:i:s')]);
     }
 
     public function submit(Request $request, Event $event)

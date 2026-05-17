@@ -3,7 +3,7 @@
 @section('page-title', 'Manage Organizations')
 
 @section('content')
-<div class="max-w-6xl mx-auto pb-10" x-data="{ open: false }">
+<div class="page-shell" x-data="{ open: false }">
 
     <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
         <div>
@@ -34,9 +34,10 @@
                 </div>
                 <select name="type" onchange="this.form.submit()" class="border-2 border-green-200 rounded-lg py-2 px-3 text-[13px] font-medium text-green-400 outline-none focus:border-green-600 bg-white cursor-pointer transition-colors">
                     <option value="">All Types</option>
-                    <option value="SSC" {{ request('type') === 'SSC' ? 'selected' : '' }}>SSC</option>
+                    <option value="UNIVERSITY_WIDE" {{ request('type') === 'UNIVERSITY_WIDE' ? 'selected' : '' }}>University-Wide</option>
                     <option value="COLLEGE_COUNCIL" {{ request('type') === 'COLLEGE_COUNCIL' ? 'selected' : '' }}>College Council</option>
-                    <option value="DEPT_SOCIETY" {{ request('type') === 'DEPT_SOCIETY' ? 'selected' : '' }}>Dept Society</option>
+                    <option value="CLASS_ORG" {{ request('type') === 'CLASS_ORG' ? 'selected' : '' }}>Class Organization</option>
+                    <option value="RESERVED" {{ request('type') === 'RESERVED' ? 'selected' : '' }}>Reserved</option>
                 </select>
             </form>
         </div>
@@ -111,9 +112,10 @@
                     <div>
                         <label class="block text-[13px] font-semibold text-green-400 mb-2">Organization Type <span class="text-red-500">*</span></label>
                         <select name="type" class="w-full px-4 py-3 border-2 border-green-200 rounded-lg bg-white text-[14px] font-medium text-green-800 outline-none focus:border-green-600 transition-colors cursor-pointer appearance-none">
-                            <option value="SSC">Supreme Student Council (SSC)</option>
+                            <option value="UNIVERSITY_WIDE">University-Wide</option>
                             <option value="COLLEGE_COUNCIL">College Council</option>
-                            <option value="DEPT_SOCIETY">Department Society</option>
+                            <option value="CLASS_ORG">Class Organization</option>
+                            <option value="RESERVED">Reserved</option>
                         </select>
                     </div>
                     <div>

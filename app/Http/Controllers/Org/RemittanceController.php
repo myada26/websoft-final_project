@@ -4,30 +4,46 @@ namespace App\Http\Controllers\Org;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\Remittance;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RemittanceController extends Controller
 {
     public function index()
     {
         $orgId = auth()->user()->organization_id;
-        $remittances = \App\Models\Remittance::where('organization_id', $orgId)
+        $remittances = Remittance::where('organization_id', $orgId)
             ->with('academicYear')
             ->orderByDesc('created_at')
             ->paginate(15);
 
-        // Summary stats for the view
-        $pendingCount   = \App\Models\Remittance::where('organization_id', $orgId)->where('status', 'PENDING')->count();
-        $pendingAmount  = \App\Models\Transaction::whereHas('remittance', fn($q) => $q->where('organization_id', $orgId)->where('status', 'PENDING'))->sum('amount_paid');
-        
-        $verifiedCount  = \App\Models\Remittance::where('organization_id', $orgId)->where('status', 'VERIFIED')->count();
-        $verifiedAmount = \App\Models\Transaction::whereHas('remittance', fn($q) => $q->where('organization_id', $orgId)->where('status', 'VERIFIED'))->sum('amount_paid');
+        // Single GROUP BY query replaces 6 separate COUNT/SUM queries (NFR-002)
+        $stats = Remittance::where('organization_id', $orgId)
+            ->whereIn('status', ['PENDING', 'VERIFIED', 'ACCEPTED'])
+            ->select('status', DB::raw('COUNT(*) as cnt'))
+            ->groupBy('status')
+            ->pluck('cnt', 'status');
 
-        $acceptedCount  = \App\Models\Remittance::where('organization_id', $orgId)->where('status', 'ACCEPTED')->count();
-        $acceptedAmount = \App\Models\Transaction::whereHas('remittance', fn($q) => $q->where('organization_id', $orgId)->where('status', 'ACCEPTED'))->sum('amount_paid');
+        $amounts = Transaction::where('organization_id', $orgId)
+            ->where('is_void', false)
+            ->whereNotNull('remittance_id')
+            ->join('remittances', 'transactions.remittance_id', '=', 'remittances.id')
+            ->whereIn('remittances.status', ['PENDING', 'VERIFIED', 'ACCEPTED'])
+            ->select('remittances.status', DB::raw('SUM(transactions.amount_paid) as total'))
+            ->groupBy('remittances.status')
+            ->pluck('total', 'status');
+
+        $pendingCount   = $stats->get('PENDING', 0);
+        $pendingAmount  = $amounts->get('PENDING', 0);
+        $verifiedCount  = $stats->get('VERIFIED', 0);
+        $verifiedAmount = $amounts->get('VERIFIED', 0);
+        $acceptedCount  = $stats->get('ACCEPTED', 0);
+        $acceptedAmount = $amounts->get('ACCEPTED', 0);
 
         return view('org.remittances.index', compact(
-            'remittances', 'pendingCount', 'pendingAmount', 
+            'remittances', 'pendingCount', 'pendingAmount',
             'verifiedCount', 'verifiedAmount', 'acceptedCount', 'acceptedAmount'
         ));
     }

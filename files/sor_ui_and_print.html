@@ -1,87 +1,474 @@
-
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-size:14px;color:var(--color-text-primary);font-family:var(--font-sans)}
-.tab-bar{display:flex;gap:2px;margin-bottom:1.5rem;border-bottom:0.5px solid var(--color-border-tertiary);padding-bottom:0}
-.tab{padding:8px 18px;font-size:13px;cursor:pointer;border:none;background:transparent;color:var(--color-text-secondary);border-bottom:2px solid transparent;margin-bottom:-1px}
-.tab.active{color:var(--color-text-primary);border-bottom:2px solid var(--color-text-primary);font-weight:500}
-.screen{display:none}.screen.active{display:block}
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0
+  }
 
-/* ── UI SCREEN ── */
-.header-block{margin-bottom:1.5rem}
-.org-name{font-size:15px;font-weight:500;margin-bottom:4px}
-.meta{font-size:12px;color:var(--color-text-secondary);display:flex;gap:16px;flex-wrap:wrap}
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.5rem}
-.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px}
-.stat-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
-.stat-val{font-size:20px;font-weight:500}
-.stat-val.green{color:#27500A}
-.section-title{font-size:12px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
-.breakdown-table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
-.breakdown-table th{font-size:11px;font-weight:500;color:var(--color-text-secondary);text-align:left;padding:6px 10px;border-bottom:0.5px solid var(--color-border-tertiary);text-transform:uppercase;letter-spacing:.04em}
-.breakdown-table th:last-child,.breakdown-table td:last-child{text-align:right}
-.breakdown-table td{padding:9px 10px;border-bottom:0.5px solid var(--color-border-tertiary);color:var(--color-text-primary)}
-.breakdown-table tr:last-child td{font-weight:500;background:var(--color-background-secondary)}
-.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
-.badge.regular{background:#EAF3DE;color:#27500A}
-.badge.extendee{background:#E6F1FB;color:#0C447C}
-.badge.fine{background:#FCEBEB;color:#791F1F}
-.badge.cancelled{background:#F1EFE8;color:#5F5E5A}
-.badge.zero{background:var(--color-background-secondary);color:var(--color-text-tertiary)}
-.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:1rem}
-.type-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
-.type-row:last-child{border-bottom:none}
-.type-left{display:flex;align-items:center;gap:8px}
-.type-count{font-size:12px;color:var(--color-text-secondary)}
-.type-amount{font-size:13px;font-weight:500}
-.sig-line{margin-top:1.5rem;display:flex;gap:2rem;flex-wrap:wrap}
-.sig-block{flex:1;min-width:160px}
-.sig-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:24px}
-.sig-name{font-size:13px;font-weight:500;border-top:0.5px solid var(--color-border-primary);padding-top:6px}
-.sig-role{font-size:11px;color:var(--color-text-secondary)}
+  body {
+    font-size: 14px;
+    color: var(--color-text-primary);
+    font-family: var(--font-sans)
+  }
 
-/* ── PRINT SCREEN (A4 preview feel) ── */
-.print-wrap{background:var(--color-background-secondary);padding:1.5rem;border-radius:var(--border-radius-lg)}
-.doc{background:#fff;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:2rem;color:#111;font-family:'Georgia',serif}
-.doc-header{text-align:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1.5px solid #111}
-.doc-header .university{font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
-.doc-header .doc-title{font-size:17px;font-weight:700;letter-spacing:.02em;margin-bottom:2px}
-.doc-header .doc-subtitle{font-size:11px;color:#555}
-.doc-org{margin-bottom:1rem;padding:10px 12px;border:0.5px solid #ccc;border-radius:4px}
-.doc-org-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#777;margin-bottom:2px}
-.doc-org-name{font-size:13px;font-weight:700}
-.doc-meta{display:flex;gap:2rem;margin-bottom:1.25rem;font-size:11px;color:#555}
-.doc-meta span b{color:#111}
-.summary-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem}
-.sc{border:0.5px solid #ddd;border-radius:4px;padding:8px 10px;text-align:center}
-.sc-label{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:#777;margin-bottom:2px}
-.sc-val{font-size:16px;font-weight:700;color:#111}
-.sc-sub{font-size:10px;color:#555}
-.print-table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:1rem}
-.print-table th{background:#111;color:#fff;padding:5px 8px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em}
-.print-table th:nth-child(3),.print-table th:nth-child(4),.print-table td:nth-child(3),.print-table td:nth-child(4){text-align:right}
-.print-table td{padding:5px 8px;border-bottom:0.5px solid #e5e5e5;vertical-align:top}
-.print-table tr.subtotal td{background:#f5f5f5;font-weight:700;border-top:0.5px solid #bbb}
-.print-table tr.grandtotal td{background:#111;color:#fff;font-weight:700;font-size:12px}
-.type-pill{display:inline-block;font-size:9px;padding:1px 5px;border-radius:2px;font-weight:700}
-.tp-r{background:#EAF3DE;color:#27500A}
-.tp-e{background:#E6F1FB;color:#0C447C}
-.tp-f{background:#FCEBEB;color:#791F1F}
-.tp-c{background:#f0f0f0;color:#777}
-.print-sig{display:flex;justify-content:space-between;margin-top:1.5rem;padding-top:1rem;border-top:0.5px solid #ccc;font-size:11px}
-.ps-block{text-align:center;width:160px}
-.ps-line{border-top:0.5px solid #111;padding-top:4px;margin-top:28px;font-weight:700;font-size:11px}
-.ps-role{color:#777;font-size:10px}
-.doc-footer{text-align:center;font-size:9px;color:#aaa;margin-top:1rem;padding-top:8px;border-top:0.5px solid #eee}
-.note{font-size:11px;color:var(--color-text-secondary);margin-top:1rem;line-height:1.6}
-.note b{color:var(--color-text-primary);font-weight:500}
+  .tab-bar {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 1.5rem;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    padding-bottom: 0
+  }
+
+  .tab {
+    padding: 8px 18px;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px
+  }
+
+  .tab.active {
+    color: var(--color-text-primary);
+    border-bottom: 2px solid var(--color-text-primary);
+    font-weight: 500
+  }
+
+  .screen {
+    display: none
+  }
+
+  .screen.active {
+    display: block
+  }
+
+  /* ── UI SCREEN ── */
+  .header-block {
+    margin-bottom: 1.5rem
+  }
+
+  .org-name {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 4px
+  }
+
+  .meta {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 1.5rem
+  }
+
+  .stat {
+    background: var(--color-background-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 12px 14px
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: .04em
+  }
+
+  .stat-val {
+    font-size: 20px;
+    font-weight: 500
+  }
+
+  .stat-val.green {
+    color: #27500A
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 10px
+  }
+
+  .breakdown-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    table-layout: fixed
+  }
+
+  .breakdown-table th {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-align: left;
+    padding: 6px 10px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    text-transform: uppercase;
+    letter-spacing: .04em
+  }
+
+  .breakdown-table th:last-child,
+  .breakdown-table td:last-child {
+    text-align: right
+  }
+
+  .breakdown-table td {
+    padding: 9px 10px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    color: var(--color-text-primary)
+  }
+
+  .breakdown-table tr:last-child td {
+    font-weight: 500;
+    background: var(--color-background-secondary)
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500
+  }
+
+  .badge.regular {
+    background: #EAF3DE;
+    color: #27500A
+  }
+
+  .badge.extendee {
+    background: #E6F1FB;
+    color: #0C447C
+  }
+
+  .badge.fine {
+    background: #FCEBEB;
+    color: #791F1F
+  }
+
+  .badge.cancelled {
+    background: #F1EFE8;
+    color: #5F5E5A
+  }
+
+  .badge.zero {
+    background: var(--color-background-secondary);
+    color: var(--color-text-tertiary)
+  }
+
+  .card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 1.25rem;
+    margin-bottom: 1rem
+  }
+
+  .type-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 0.5px solid var(--color-border-tertiary)
+  }
+
+  .type-row:last-child {
+    border-bottom: none
+  }
+
+  .type-left {
+    display: flex;
+    align-items: center;
+    gap: 8px
+  }
+
+  .type-count {
+    font-size: 12px;
+    color: var(--color-text-secondary)
+  }
+
+  .type-amount {
+    font-size: 13px;
+    font-weight: 500
+  }
+
+  .sig-line {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap
+  }
+
+  .sig-block {
+    flex: 1;
+    min-width: 160px
+  }
+
+  .sig-label {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    margin-bottom: 24px
+  }
+
+  .sig-name {
+    font-size: 13px;
+    font-weight: 500;
+    border-top: 0.5px solid var(--color-border-primary);
+    padding-top: 6px
+  }
+
+  .sig-role {
+    font-size: 11px;
+    color: var(--color-text-secondary)
+  }
+
+  /* ── PRINT SCREEN (A4 preview feel) ── */
+  .print-wrap {
+    background: var(--color-background-secondary);
+    padding: 1.5rem;
+    border-radius: var(--border-radius-lg)
+  }
+
+  .doc {
+    background: #fff;
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md);
+    padding: 2rem;
+    color: #111;
+    font-family: 'Georgia', serif
+  }
+
+  .doc-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1.5px solid #111
+  }
+
+  .doc-header .university {
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 4px
+  }
+
+  .doc-header .doc-title {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    margin-bottom: 2px
+  }
+
+  .doc-header .doc-subtitle {
+    font-size: 11px;
+    color: #555
+  }
+
+  .doc-org {
+    margin-bottom: 1rem;
+    padding: 10px 12px;
+    border: 0.5px solid #ccc;
+    border-radius: 4px
+  }
+
+  .doc-org-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #777;
+    margin-bottom: 2px
+  }
+
+  .doc-org-name {
+    font-size: 13px;
+    font-weight: 700
+  }
+
+  .doc-meta {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1.25rem;
+    font-size: 11px;
+    color: #555
+  }
+
+  .doc-meta span b {
+    color: #111
+  }
+
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 1.25rem
+  }
+
+  .sc {
+    border: 0.5px solid #ddd;
+    border-radius: 4px;
+    padding: 8px 10px;
+    text-align: center
+  }
+
+  .sc-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #777;
+    margin-bottom: 2px
+  }
+
+  .sc-val {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111
+  }
+
+  .sc-sub {
+    font-size: 10px;
+    color: #555
+  }
+
+  .print-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    margin-bottom: 1rem
+  }
+
+  .print-table th {
+    background: #111;
+    color: #fff;
+    padding: 5px 8px;
+    text-align: left;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .04em
+  }
+
+  .print-table th:nth-child(3),
+  .print-table th:nth-child(4),
+  .print-table td:nth-child(3),
+  .print-table td:nth-child(4) {
+    text-align: right
+  }
+
+  .print-table td {
+    padding: 5px 8px;
+    border-bottom: 0.5px solid #e5e5e5;
+    vertical-align: top
+  }
+
+  .print-table tr.subtotal td {
+    background: #f5f5f5;
+    font-weight: 700;
+    border-top: 0.5px solid #bbb
+  }
+
+  .print-table tr.grandtotal td {
+    background: #111;
+    color: #fff;
+    font-weight: 700;
+    font-size: 12px
+  }
+
+  .type-pill {
+    display: inline-block;
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-weight: 700
+  }
+
+  .tp-r {
+    background: #EAF3DE;
+    color: #27500A
+  }
+
+  .tp-e {
+    background: #E6F1FB;
+    color: #0C447C
+  }
+
+  .tp-f {
+    background: #FCEBEB;
+    color: #791F1F
+  }
+
+  .tp-c {
+    background: #f0f0f0;
+    color: #777
+  }
+
+  .print-sig {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 0.5px solid #ccc;
+    font-size: 11px
+  }
+
+  .ps-block {
+    text-align: center;
+    width: 160px
+  }
+
+  .ps-line {
+    border-top: 0.5px solid #111;
+    padding-top: 4px;
+    margin-top: 28px;
+    font-weight: 700;
+    font-size: 11px
+  }
+
+  .ps-role {
+    color: #777;
+    font-size: 10px
+  }
+
+  .doc-footer {
+    text-align: center;
+    font-size: 9px;
+    color: #aaa;
+    margin-top: 1rem;
+    padding-top: 8px;
+    border-top: 0.5px solid #eee
+  }
+
+  .note {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    margin-top: 1rem;
+    line-height: 1.6
+  }
+
+  .note b {
+    color: var(--color-text-primary);
+    font-weight: 500
+  }
 </style>
 
 <h2 class="sr-only">Summary of receipts report — interactive UI view and print-ready document preview</h2>
 
 <div class="tab-bar">
-  <button class="tab active" onclick="switchTab('ui',this)"><i class="ti ti-chart-bar" aria-hidden="true" style="font-size:14px;margin-right:5px"></i>On-screen report</button>
-  <button class="tab" onclick="switchTab('print',this)"><i class="ti ti-printer" aria-hidden="true" style="font-size:14px;margin-right:5px"></i>Print document</button>
+  <button class="tab active" onclick="switchTab('ui',this)"><i class="ti ti-chart-bar" aria-hidden="true"
+      style="font-size:14px;margin-right:5px"></i>On-screen report</button>
+  <button class="tab" onclick="switchTab('print',this)"><i class="ti ti-printer" aria-hidden="true"
+      style="font-size:14px;margin-right:5px"></i>Print document</button>
 </div>
 
 <div id="ui" class="screen active">
@@ -89,9 +476,12 @@ body{font-size:14px;color:var(--color-text-primary);font-family:var(--font-sans)
   <div class="header-block">
     <div class="org-name">College of Information Sciences and Computing Student Council (CSCo)</div>
     <div class="meta">
-      <span><i class="ti ti-calendar" aria-hidden="true" style="font-size:13px;margin-right:3px"></i>1st Semester · Academic Year 2024–2025</span>
-      <span><i class="ti ti-users" aria-hidden="true" style="font-size:13px;margin-right:3px"></i>539 total members</span>
-      <span><i class="ti ti-receipt" aria-hidden="true" style="font-size:13px;margin-right:3px"></i>OR range: 001–539</span>
+      <span><i class="ti ti-calendar" aria-hidden="true" style="font-size:13px;margin-right:3px"></i>1st Semester ·
+        Academic Year 2024–2025</span>
+      <span><i class="ti ti-users" aria-hidden="true" style="font-size:13px;margin-right:3px"></i>539 total
+        members</span>
+      <span><i class="ti ti-receipt" aria-hidden="true" style="font-size:13px;margin-right:3px"></i>OR range:
+        001–539</span>
     </div>
   </div>
 
@@ -125,50 +515,134 @@ body{font-size:14px;color:var(--color-text-primary);font-family:var(--font-sans)
   <div class="card">
     <div class="section-title">Collection breakdown by type</div>
     <div class="type-row">
-      <div class="type-left"><span class="badge regular">Regular</span><span style="font-size:13px">₱1,000.00 per member</span></div>
+      <div class="type-left"><span class="badge regular">Regular</span><span style="font-size:13px">₱1,000.00 per
+          member</span></div>
       <div><span class="type-count">430 receipts &nbsp;</span><span class="type-amount">₱430,000.00</span></div>
     </div>
     <div class="type-row">
-      <div class="type-left"><span class="badge extendee">Extendee</span><span style="font-size:13px">₱500.00 per member</span></div>
+      <div class="type-left"><span class="badge extendee">Extendee</span><span style="font-size:13px">₱500.00 per
+          member</span></div>
       <div><span class="type-count">13 receipts &nbsp;</span><span class="type-amount">₱6,500.00</span></div>
     </div>
     <div class="type-row">
       <div class="type-left"><span class="badge fine">Fines</span><span style="font-size:13px">—</span></div>
-      <div><span class="type-count">0 receipts &nbsp;</span><span class="type-amount" style="color:var(--color-text-tertiary)">₱0.00</span></div>
+      <div><span class="type-count">0 receipts &nbsp;</span><span class="type-amount"
+          style="color:var(--color-text-tertiary)">₱0.00</span></div>
     </div>
     <div class="type-row">
       <div class="type-left"><span class="badge cancelled">Cancelled</span><span style="font-size:13px">—</span></div>
-      <div><span class="type-count">0 receipts &nbsp;</span><span class="type-amount" style="color:var(--color-text-tertiary)">₱0.00</span></div>
+      <div><span class="type-count">0 receipts &nbsp;</span><span class="type-amount"
+          style="color:var(--color-text-tertiary)">₱0.00</span></div>
     </div>
   </div>
 
   <div class="section-title" style="margin-bottom:10px">Receipt batch summary</div>
   <div style="overflow-x:auto">
-  <table class="breakdown-table">
-    <thead>
-      <tr>
-        <th style="width:110px">OR range</th>
-        <th>Regular</th>
-        <th>Extendee</th>
-        <th>Fines</th>
-        <th>Cancelled</th>
-        <th style="width:100px">Count</th>
-        <th style="width:110px">Subtotal</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td>001 – 050</td><td>47</td><td>3</td><td>0</td><td>0</td><td>50</td><td>₱48,500</td></tr>
-      <tr><td>051 – 100</td><td>48</td><td>2</td><td>0</td><td>0</td><td>50</td><td>₱49,000</td></tr>
-      <tr><td>101 – 150</td><td>48</td><td>2</td><td>0</td><td>0</td><td>50</td><td>₱49,000</td></tr>
-      <tr><td>151 – 200</td><td>50</td><td>0</td><td>0</td><td>0</td><td>50</td><td>₱50,000</td></tr>
-      <tr><td>201 – 250</td><td>47</td><td>3</td><td>0</td><td>0</td><td>50</td><td>₱48,500</td></tr>
-      <tr><td>251 – 300</td><td>48</td><td>2</td><td>0</td><td>0</td><td>50</td><td>₱49,000</td></tr>
-      <tr><td>301 – 350</td><td>49</td><td>1</td><td>0</td><td>0</td><td>50</td><td>₱49,500</td></tr>
-      <tr><td>351 – 400</td><td>49</td><td>1</td><td>0</td><td>0</td><td>50</td><td>₱49,500</td></tr>
-      <tr><td>401 – 443</td><td>43</td><td>0</td><td>0</td><td>0</td><td>43</td><td>₱43,000</td></tr>
-      <tr><td><strong>Total</strong></td><td><strong>430</strong></td><td><strong>13</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>443</strong></td><td><strong>₱436,000</strong></td></tr>
-    </tbody>
-  </table>
+    <table class="breakdown-table">
+      <thead>
+        <tr>
+          <th style="width:110px">OR range</th>
+          <th>Regular</th>
+          <th>Extendee</th>
+          <th>Fines</th>
+          <th>Cancelled</th>
+          <th style="width:100px">Count</th>
+          <th style="width:110px">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>001 – 050</td>
+          <td>47</td>
+          <td>3</td>
+          <td>0</td>
+          <td>0</td>
+          <td>50</td>
+          <td>₱48,500</td>
+        </tr>
+        <tr>
+          <td>051 – 100</td>
+          <td>48</td>
+          <td>2</td>
+          <td>0</td>
+          <td>0</td>
+          <td>50</td>
+          <td>₱49,000</td>
+        </tr>
+        <tr>
+          <td>101 – 150</td>
+          <td>48</td>
+          <td>2</td>
+          <td>0</td>
+          <td>0</td>
+          <td>50</td>
+          <td>₱49,000</td>
+        </tr>
+        <tr>
+          <td>151 – 200</td>
+          <td>50</td>
+          <td>0</td>
+          <td>0</td>
+          <td>0</td>
+          <td>50</td>
+          <td>₱50,000</td>
+        </tr>
+        <tr>
+          <td>201 – 250</td>
+          <td>47</td>
+          <td>3</td>
+          <td>0</td>
+          <td>0</td>
+          <td>50</td>
+          <td>₱48,500</td>
+        </tr>
+        <tr>
+          <td>251 – 300</td>
+          <td>48</td>
+          <td>2</td>
+          <td>0</td>
+          <td>0</td>
+          <td>50</td>
+          <td>₱49,000</td>
+        </tr>
+        <tr>
+          <td>301 – 350</td>
+          <td>49</td>
+          <td>1</td>
+          <td>0</td>
+          <td>0</td>
+          <td>50</td>
+          <td>₱49,500</td>
+        </tr>
+        <tr>
+          <td>351 – 400</td>
+          <td>49</td>
+          <td>1</td>
+          <td>0</td>
+          <td>0</td>
+          <td>50</td>
+          <td>₱49,500</td>
+        </tr>
+        <tr>
+          <td>401 – 443</td>
+          <td>43</td>
+          <td>0</td>
+          <td>0</td>
+          <td>0</td>
+          <td>43</td>
+          <td>₱43,000</td>
+        </tr>
+        <tr>
+          <td><strong>Total</strong></td>
+          <td><strong>430</strong></td>
+          <td><strong>13</strong></td>
+          <td><strong>0</strong></td>
+          <td><strong>0</strong></td>
+          <td><strong>443</strong></td>
+          <td><strong>₱436,000</strong></td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
   <div class="sig-line" style="margin-top:1.5rem">
@@ -189,7 +663,7 @@ body{font-size:14px;color:var(--color-text-primary);font-family:var(--font-sans)
   <div class="print-wrap">
     <div class="doc">
       <div class="doc-header">
-        <div class="university">University of the Philippines · Office of Student Affairs</div>
+        <div class="university">Central Mindanao University · Office of Student Affairs</div>
         <div class="doc-title">Summary of Receipts</div>
         <div class="doc-subtitle">Official financial collection report · For OSA submission</div>
       </div>
@@ -213,10 +687,24 @@ body{font-size:14px;color:var(--color-text-primary);font-family:var(--font-sans)
       </div>
 
       <div class="summary-cards">
-        <div class="sc"><div class="sc-label">Receipts issued</div><div class="sc-val">443</div></div>
-        <div class="sc"><div class="sc-label">Total collected</div><div class="sc-val">₱436,000</div></div>
-        <div class="sc"><div class="sc-label">Regular</div><div class="sc-val">430</div><div class="sc-sub">₱430,000</div></div>
-        <div class="sc"><div class="sc-label">Extendee</div><div class="sc-val">13</div><div class="sc-sub">₱6,500</div></div>
+        <div class="sc">
+          <div class="sc-label">Receipts issued</div>
+          <div class="sc-val">443</div>
+        </div>
+        <div class="sc">
+          <div class="sc-label">Total collected</div>
+          <div class="sc-val">₱436,000</div>
+        </div>
+        <div class="sc">
+          <div class="sc-label">Regular</div>
+          <div class="sc-val">430</div>
+          <div class="sc-sub">₱430,000</div>
+        </div>
+        <div class="sc">
+          <div class="sc-label">Extendee</div>
+          <div class="sc-val">13</div>
+          <div class="sc-sub">₱6,500</div>
+        </div>
       </div>
 
       <table class="print-table">
@@ -229,41 +717,163 @@ body{font-size:14px;color:var(--color-text-primary);font-family:var(--font-sans)
           </tr>
         </thead>
         <tbody>
-          <tr><td rowspan="2" style="vertical-align:middle;font-weight:700">001–050</td><td><span class="type-pill tp-r">Regular</span> 47 receipts</td><td style="text-align:right">47</td><td style="text-align:right">₱47,000.00</td></tr>
-          <tr><td><span class="type-pill tp-e">Extendee</span> 3 receipts</td><td style="text-align:right">3</td><td style="text-align:right">₱1,500.00</td></tr>
-          <tr class="subtotal"><td></td><td>Batch total</td><td style="text-align:right">50</td><td style="text-align:right">₱48,500.00</td></tr>
+          <tr>
+            <td rowspan="2" style="vertical-align:middle;font-weight:700">001–050</td>
+            <td><span class="type-pill tp-r">Regular</span> 47 receipts</td>
+            <td style="text-align:right">47</td>
+            <td style="text-align:right">₱47,000.00</td>
+          </tr>
+          <tr>
+            <td><span class="type-pill tp-e">Extendee</span> 3 receipts</td>
+            <td style="text-align:right">3</td>
+            <td style="text-align:right">₱1,500.00</td>
+          </tr>
+          <tr class="subtotal">
+            <td></td>
+            <td>Batch total</td>
+            <td style="text-align:right">50</td>
+            <td style="text-align:right">₱48,500.00</td>
+          </tr>
 
-          <tr><td rowspan="2" style="vertical-align:middle;font-weight:700">051–100</td><td><span class="type-pill tp-r">Regular</span> 48 receipts</td><td style="text-align:right">48</td><td style="text-align:right">₱48,000.00</td></tr>
-          <tr><td><span class="type-pill tp-e">Extendee</span> 2 receipts</td><td style="text-align:right">2</td><td style="text-align:right">₱1,000.00</td></tr>
-          <tr class="subtotal"><td></td><td>Batch total</td><td style="text-align:right">50</td><td style="text-align:right">₱49,000.00</td></tr>
+          <tr>
+            <td rowspan="2" style="vertical-align:middle;font-weight:700">051–100</td>
+            <td><span class="type-pill tp-r">Regular</span> 48 receipts</td>
+            <td style="text-align:right">48</td>
+            <td style="text-align:right">₱48,000.00</td>
+          </tr>
+          <tr>
+            <td><span class="type-pill tp-e">Extendee</span> 2 receipts</td>
+            <td style="text-align:right">2</td>
+            <td style="text-align:right">₱1,000.00</td>
+          </tr>
+          <tr class="subtotal">
+            <td></td>
+            <td>Batch total</td>
+            <td style="text-align:right">50</td>
+            <td style="text-align:right">₱49,000.00</td>
+          </tr>
 
-          <tr><td rowspan="2" style="vertical-align:middle;font-weight:700">101–150</td><td><span class="type-pill tp-r">Regular</span> 48 receipts</td><td style="text-align:right">48</td><td style="text-align:right">₱48,000.00</td></tr>
-          <tr><td><span class="type-pill tp-e">Extendee</span> 2 receipts</td><td style="text-align:right">2</td><td style="text-align:right">₱1,000.00</td></tr>
-          <tr class="subtotal"><td></td><td>Batch total</td><td style="text-align:right">50</td><td style="text-align:right">₱49,000.00</td></tr>
+          <tr>
+            <td rowspan="2" style="vertical-align:middle;font-weight:700">101–150</td>
+            <td><span class="type-pill tp-r">Regular</span> 48 receipts</td>
+            <td style="text-align:right">48</td>
+            <td style="text-align:right">₱48,000.00</td>
+          </tr>
+          <tr>
+            <td><span class="type-pill tp-e">Extendee</span> 2 receipts</td>
+            <td style="text-align:right">2</td>
+            <td style="text-align:right">₱1,000.00</td>
+          </tr>
+          <tr class="subtotal">
+            <td></td>
+            <td>Batch total</td>
+            <td style="text-align:right">50</td>
+            <td style="text-align:right">₱49,000.00</td>
+          </tr>
 
-          <tr><td style="font-weight:700">151–200</td><td><span class="type-pill tp-r">Regular</span> 50 receipts</td><td style="text-align:right">50</td><td style="text-align:right">₱50,000.00</td></tr>
-          <tr class="subtotal"><td></td><td>Batch total</td><td style="text-align:right">50</td><td style="text-align:right">₱50,000.00</td></tr>
+          <tr>
+            <td style="font-weight:700">151–200</td>
+            <td><span class="type-pill tp-r">Regular</span> 50 receipts</td>
+            <td style="text-align:right">50</td>
+            <td style="text-align:right">₱50,000.00</td>
+          </tr>
+          <tr class="subtotal">
+            <td></td>
+            <td>Batch total</td>
+            <td style="text-align:right">50</td>
+            <td style="text-align:right">₱50,000.00</td>
+          </tr>
 
-          <tr><td rowspan="2" style="vertical-align:middle;font-weight:700">201–250</td><td><span class="type-pill tp-r">Regular</span> 47 receipts</td><td style="text-align:right">47</td><td style="text-align:right">₱47,000.00</td></tr>
-          <tr><td><span class="type-pill tp-e">Extendee</span> 3 receipts</td><td style="text-align:right">3</td><td style="text-align:right">₱1,500.00</td></tr>
-          <tr class="subtotal"><td></td><td>Batch total</td><td style="text-align:right">50</td><td style="text-align:right">₱48,500.00</td></tr>
+          <tr>
+            <td rowspan="2" style="vertical-align:middle;font-weight:700">201–250</td>
+            <td><span class="type-pill tp-r">Regular</span> 47 receipts</td>
+            <td style="text-align:right">47</td>
+            <td style="text-align:right">₱47,000.00</td>
+          </tr>
+          <tr>
+            <td><span class="type-pill tp-e">Extendee</span> 3 receipts</td>
+            <td style="text-align:right">3</td>
+            <td style="text-align:right">₱1,500.00</td>
+          </tr>
+          <tr class="subtotal">
+            <td></td>
+            <td>Batch total</td>
+            <td style="text-align:right">50</td>
+            <td style="text-align:right">₱48,500.00</td>
+          </tr>
 
-          <tr><td rowspan="2" style="vertical-align:middle;font-weight:700">251–300</td><td><span class="type-pill tp-r">Regular</span> 48 receipts</td><td style="text-align:right">48</td><td style="text-align:right">₱48,000.00</td></tr>
-          <tr><td><span class="type-pill tp-e">Extendee</span> 2 receipts</td><td style="text-align:right">2</td><td style="text-align:right">₱1,000.00</td></tr>
-          <tr class="subtotal"><td></td><td>Batch total</td><td style="text-align:right">50</td><td style="text-align:right">₱49,000.00</td></tr>
+          <tr>
+            <td rowspan="2" style="vertical-align:middle;font-weight:700">251–300</td>
+            <td><span class="type-pill tp-r">Regular</span> 48 receipts</td>
+            <td style="text-align:right">48</td>
+            <td style="text-align:right">₱48,000.00</td>
+          </tr>
+          <tr>
+            <td><span class="type-pill tp-e">Extendee</span> 2 receipts</td>
+            <td style="text-align:right">2</td>
+            <td style="text-align:right">₱1,000.00</td>
+          </tr>
+          <tr class="subtotal">
+            <td></td>
+            <td>Batch total</td>
+            <td style="text-align:right">50</td>
+            <td style="text-align:right">₱49,000.00</td>
+          </tr>
 
-          <tr><td rowspan="2" style="vertical-align:middle;font-weight:700">301–350</td><td><span class="type-pill tp-r">Regular</span> 49 receipts</td><td style="text-align:right">49</td><td style="text-align:right">₱49,000.00</td></tr>
-          <tr><td><span class="type-pill tp-e">Extendee</span> 1 receipt</td><td style="text-align:right">1</td><td style="text-align:right">₱500.00</td></tr>
-          <tr class="subtotal"><td></td><td>Batch total</td><td style="text-align:right">50</td><td style="text-align:right">₱49,500.00</td></tr>
+          <tr>
+            <td rowspan="2" style="vertical-align:middle;font-weight:700">301–350</td>
+            <td><span class="type-pill tp-r">Regular</span> 49 receipts</td>
+            <td style="text-align:right">49</td>
+            <td style="text-align:right">₱49,000.00</td>
+          </tr>
+          <tr>
+            <td><span class="type-pill tp-e">Extendee</span> 1 receipt</td>
+            <td style="text-align:right">1</td>
+            <td style="text-align:right">₱500.00</td>
+          </tr>
+          <tr class="subtotal">
+            <td></td>
+            <td>Batch total</td>
+            <td style="text-align:right">50</td>
+            <td style="text-align:right">₱49,500.00</td>
+          </tr>
 
-          <tr><td rowspan="2" style="vertical-align:middle;font-weight:700">351–400</td><td><span class="type-pill tp-r">Regular</span> 49 receipts</td><td style="text-align:right">49</td><td style="text-align:right">₱49,000.00</td></tr>
-          <tr><td><span class="type-pill tp-e">Extendee</span> 1 receipt</td><td style="text-align:right">1</td><td style="text-align:right">₱500.00</td></tr>
-          <tr class="subtotal"><td></td><td>Batch total</td><td style="text-align:right">50</td><td style="text-align:right">₱49,500.00</td></tr>
+          <tr>
+            <td rowspan="2" style="vertical-align:middle;font-weight:700">351–400</td>
+            <td><span class="type-pill tp-r">Regular</span> 49 receipts</td>
+            <td style="text-align:right">49</td>
+            <td style="text-align:right">₱49,000.00</td>
+          </tr>
+          <tr>
+            <td><span class="type-pill tp-e">Extendee</span> 1 receipt</td>
+            <td style="text-align:right">1</td>
+            <td style="text-align:right">₱500.00</td>
+          </tr>
+          <tr class="subtotal">
+            <td></td>
+            <td>Batch total</td>
+            <td style="text-align:right">50</td>
+            <td style="text-align:right">₱49,500.00</td>
+          </tr>
 
-          <tr><td style="font-weight:700">401–443</td><td><span class="type-pill tp-r">Regular</span> 43 receipts</td><td style="text-align:right">43</td><td style="text-align:right">₱43,000.00</td></tr>
-          <tr class="subtotal"><td></td><td>Batch total</td><td style="text-align:right">43</td><td style="text-align:right">₱43,000.00</td></tr>
+          <tr>
+            <td style="font-weight:700">401–443</td>
+            <td><span class="type-pill tp-r">Regular</span> 43 receipts</td>
+            <td style="text-align:right">43</td>
+            <td style="text-align:right">₱43,000.00</td>
+          </tr>
+          <tr class="subtotal">
+            <td></td>
+            <td>Batch total</td>
+            <td style="text-align:right">43</td>
+            <td style="text-align:right">₱43,000.00</td>
+          </tr>
 
-          <tr class="grandtotal"><td colspan="2">Overall total</td><td style="text-align:right">443</td><td style="text-align:right">₱436,000.00</td></tr>
+          <tr class="grandtotal">
+            <td colspan="2">Overall total</td>
+            <td style="text-align:right">443</td>
+            <td style="text-align:right">₱436,000.00</td>
+          </tr>
         </tbody>
       </table>
 
@@ -282,20 +892,23 @@ body{font-size:14px;color:var(--color-text-primary);font-family:var(--font-sans)
         </div>
       </div>
 
-      <div class="doc-footer">Generated by FCATS · Fee Collection and Tracking System · Printed on ____________ · This document is system-generated and valid without a wet signature if transmitted electronically to OSA.</div>
+      <div class="doc-footer">Generated by FCATS · Fee Collection and Tracking System · Printed on ____________ · This
+        document is system-generated and valid without a wet signature if transmitted electronically to OSA.</div>
     </div>
   </div>
 
   <div class="note" style="margin-top:1rem">
-    <b>Print note:</b> The print view above is formatted for A4 paper. In FCATS, clicking "Export PDF" will generate this as a downloadable file using DomPDF, with the university letterhead and official OR series auto-filled from the active semester's data.
+    <b>Print note:</b> The print view above is formatted for A4 paper. In FCATS, clicking "Export PDF" will generate
+    this as a downloadable file using DomPDF, with the university letterhead and official OR series auto-filled from the
+    active semester's data.
   </div>
 </div>
 
 <script>
-function switchTab(id, btn){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  btn.classList.add('active');
-}
+  function switchTab(id, btn) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+  }
 </script>

@@ -14,8 +14,8 @@ return new class extends Migration
         
         // Note: This is handled at application level in AcademicYearController
         // We'll add a unique index as a safety net for future migrations
-        DB::statement('CREATE UNIQUE INDEX IF NOT EXISTS academic_years_is_active_unique 
-            ON academic_years (is_active) WHERE is_active = 1');
+        DB::statement('CREATE UNIQUE INDEX IF NOT EXISTS academic_years_is_active_unique
+            ON academic_years (is_active) WHERE is_active = true');
     }
 
     public function down(): void

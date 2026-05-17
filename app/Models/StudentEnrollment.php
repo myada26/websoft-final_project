@@ -12,14 +12,13 @@ class StudentEnrollment extends Model
         'academic_year_id',
         'program_id',
         'year_level',
-        'is_regular',
+        'student_type',
     ];
 
     protected function casts(): array
     {
         return [
-            'is_regular'  => 'boolean',
-            'year_level'  => 'integer',
+            'year_level' => 'integer',
         ];
     }
 
@@ -45,10 +44,10 @@ class StudentEnrollment extends Model
     // Derive fee category from enrollment (FR-0010, FR-0012)
     public function getFeeCategory(): string
     {
-        if (!$this->is_regular) {
-            return 'IRREGULAR';
-        }
-
-        return 'REGULAR';
+        return match($this->student_type) {
+            'IRREGULAR' => 'IRREGULAR',
+            'EXTENDEE'  => 'IRREGULAR',
+            default     => 'REGULAR',
+        };
     }
 }

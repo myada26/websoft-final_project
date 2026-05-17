@@ -103,7 +103,37 @@ class Phase10EmailReceiptTest extends TestCase
 
     public function test_email_sent_for_fine_transaction()
     {
-        $this->markTestSkipped('Fine collection window must be opened first - requires route implementation');
+        Http::fake([
+            'https://send.api.mailtrap.io/api/send' => Http::response(['success' => true], 200),
+        ]);
+
+        $treasurer = $this->getUserByRole('TREASURER');
+        $student = $this->getStudentWithEmail();
+        $semester = AcademicYear::where('is_active', true)->first();
+        $event = \App\Models\Event::where('organization_id', $treasurer->organization_id)->first();
+
+        $fine = \App\Models\StudentFine::create([
+            'student_id' => $student->id,
+            'organization_id' => $treasurer->organization_id,
+            'event_id' => $event->id,
+            'academic_year_id' => $semester->id,
+            'slots_missed' => 2,
+            'fine_amount' => 20.00,
+            'status' => 'UNPAID',
+        ]);
+
+        app(\App\Services\FineCollectionWindowService::class)->openWindow($treasurer->organization, $treasurer);
+
+        $this->actingAs($treasurer)->post('/org/transactions/fine', [
+            'student_id' => $student->id,
+            'payment_method' => 'CASH',
+            'amount_paid' => $fine->fine_amount,
+            'student_fine_id' => $fine->id,
+        ]);
+
+        Http::assertSent(function ($request) {
+            return $request->url() === 'https://send.api.mailtrap.io/api/send';
+        });
     }
 
     public function test_receipt_email_contains_required_fields()

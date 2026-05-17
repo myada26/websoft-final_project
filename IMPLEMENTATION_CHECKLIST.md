@@ -96,13 +96,9 @@
 
 ### 2.5 FR-0005: Role-Based Account Creation
 
-- [ ] Add Resolution upload feature in Admin User Controller
-  - Create `resolutions` table (id, organization_id, file_path, uploaded_by, created_at)
-  - File upload to storage/app/resolutions
 - [ ] Update user creation flow:
   - Step 1: Select organization
-  - Step 2: Upload/reference resolution
-  - Step 3: Create user with pre-defined role
+  - Step 2: Create user with pre-defined role
 - [ ] Lock permission assignment to roles only
 - [ ] Prevent individual permission toggling
 

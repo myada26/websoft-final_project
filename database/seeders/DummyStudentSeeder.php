@@ -88,7 +88,7 @@ class DummyStudentSeeder extends Seeder
                 'academic_year_id' => $academicYearId,
                 'program_id'       => $programId,
                 'year_level'       => random_int(1, 4),
-                'is_regular'       => (bool) random_int(0, 1),
+                'student_type'     => ['REGULAR', 'IRREGULAR', 'EXTENDEE'][random_int(0, 2)],
                 'created_at'       => now(),
                 'updated_at'       => now(),
             ];

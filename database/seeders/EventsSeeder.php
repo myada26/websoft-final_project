@@ -26,7 +26,7 @@ class EventsSeeder extends Seeder
             'status' => 'OPEN',
         ]);
 
-        DB::table('events')->insert([
+        $halfDayEventId = DB::table('events')->insertGetId([
             'organization_id' => $coeOrgId,
             'academic_year_id' => $academicYearId,
             'name' => 'General Assembly',
@@ -42,8 +42,9 @@ class EventsSeeder extends Seeder
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+        $this->populateAttendance($halfDayEventId, $academicYearId, ['MORNING_IN', 'MORNING_OUT']);
 
-        DB::table('events')->insert([
+        $fullDayEventId = DB::table('events')->insertGetId([
             'organization_id' => $coeOrgId,
             'academic_year_id' => $academicYearId,
             'name' => 'General Assembly (Full Day)',
@@ -59,8 +60,9 @@ class EventsSeeder extends Seeder
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+        $this->populateAttendance($fullDayEventId, $academicYearId, ['MORNING_IN', 'MORNING_OUT', 'AFTERNOON_IN', 'AFTERNOON_OUT']);
 
-        DB::table('events')->insert([
+        $draftEventId = DB::table('events')->insertGetId([
             'organization_id' => $coeOrgId,
             'academic_year_id' => $academicYearId,
             'name' => 'COE Night',
@@ -74,5 +76,31 @@ class EventsSeeder extends Seeder
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+        $this->populateAttendance($draftEventId, $academicYearId, ['MORNING_IN', 'MORNING_OUT', 'AFTERNOON_IN', 'AFTERNOON_OUT']);
+    }
+
+    private function populateAttendance(int $eventId, int $academicYearId, array $slots): void
+    {
+        $studentIds = DB::table('student_enrollments')
+            ->where('academic_year_id', $academicYearId)
+            ->pluck('student_id');
+
+        $rows = [];
+        foreach ($studentIds as $studentId) {
+            foreach ($slots as $slot) {
+                $rows[] = [
+                    'event_id' => $eventId,
+                    'student_id' => $studentId,
+                    'slot' => $slot,
+                    'is_present' => false,
+                    'recorded_by_user_id' => null,
+                    'updated_at' => now(),
+                ];
+            }
+        }
+
+        if ($rows !== []) {
+            DB::table('event_attendance')->insertOrIgnore($rows);
+        }
     }
 }

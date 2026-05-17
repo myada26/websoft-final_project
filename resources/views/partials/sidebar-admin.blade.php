@@ -14,6 +14,17 @@
     </div>
 
     <nav class="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3">
+
+        {{-- Dashboard — pinned at top, always visible to SSC_ADMIN --}}
+        @php $dashActive = request()->routeIs('admin.dashboard'); @endphp
+        <div class="mb-3">
+            <a href="{{ route('admin.dashboard') }}"
+               class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium transition-all {{ $dashActive ? 'bg-green-600 text-white shadow-sm' : 'text-[#b7dfc7] hover:bg-white/5 hover:text-white' }}">
+                @include('partials.ui-icon', ['name' => 'dashboard', 'class' => 'w-4 h-4 shrink-0 '.($dashActive ? 'opacity-100' : 'opacity-70')])
+                <span class="truncate">Dashboard</span>
+            </a>
+        </div>
+
         @php
             $user = auth()->user();
             $allowed = fn (array $item) => $user?->hasRole($item['roles'] ?? []);
@@ -29,6 +40,7 @@
                     ['route' => 'admin.students.index', 'active' => 'admin.students.*', 'label' => 'Enrolled Students', 'icon' => 'users', 'roles' => ['SSC_ADMIN']],
                 ],
                 'System' => [
+                    ['route' => 'admin.fee-profiles.index', 'active' => 'admin.fee-profiles.*', 'label' => 'Fee Profiles', 'icon' => 'receipt', 'roles' => ['SSC_ADMIN']],
                     ['route' => 'admin.users.index', 'active' => 'admin.users.*', 'label' => 'User Management', 'icon' => 'settings', 'roles' => ['SSC_ADMIN']],
                     ['route' => 'admin.audit-logs.index', 'active' => 'admin.audit-logs.*', 'label' => 'Audit Logs', 'icon' => 'file-clock', 'roles' => ['SSC_ADMIN']],
                 ],

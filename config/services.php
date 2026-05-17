@@ -39,4 +39,15 @@ return [
         'api_key' => env('MAILTRAP_API_KEY'),
     ],
 
+    'anthropic' => [ // [AI Narrator]
+        'key'   => env('ANTHROPIC_API_KEY'), // [AI Narrator]
+        'model' => env('ANTHROPIC_MODEL', 'claude-sonnet-4-20250514'), // [AI Narrator]
+    ], // [AI Narrator]
+
+    'gemini' => [
+        'key'   => env('GEMINI_API_KEY'), // [AI Narrator]
+        'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+    ],
+
+
 ];

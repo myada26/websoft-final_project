@@ -46,14 +46,15 @@ class Organization extends Model
                     throw new \InvalidArgumentException('COLLEGE_COUNCIL cannot have a linked department.');
                 }
                 break;
-            case 'DEPT_SOCIETY':
+            case 'CLASS_ORG':
                 if (empty($this->linked_department_id)) {
-                    throw new \InvalidArgumentException('DEPT_SOCIETY must have a linked department.');
+                    throw new \InvalidArgumentException('CLASS_ORG must have a linked department.');
                 }
                 break;
-            case 'SSC':
+            case 'UNIVERSITY_WIDE':
+            case 'RESERVED':
                 if (!empty($this->linked_college_id) || !empty($this->linked_department_id)) {
-                    throw new \InvalidArgumentException('SSC cannot have linked college or department.');
+                    throw new \InvalidArgumentException($this->type . ' cannot have a linked college or department.');
                 }
                 break;
         }

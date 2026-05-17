@@ -39,13 +39,12 @@ class UserController extends Controller
             'organization_id' => 'required|exists:organizations,id',
             'is_active'       => 'nullable|boolean',
         ]);
-        
-        // Validate organization-specific role constraints
+
         $organization = Organization::find($data['organization_id']);
-        if ($organization->type === 'SSC' && !in_array($data['role'], ['SSC_ADMIN', 'CHAIRPERSON'])) {
-            return back()->with('error', 'Only SSC_ADMIN or CHAIRPERSON can be assigned to SSC organization.');
+        if ($organization->type === 'UNIVERSITY_WIDE' && !in_array($data['role'], ['SSC_ADMIN', 'CHAIRPERSON'])) {
+            return back()->with('error', 'Only SSC_ADMIN or CHAIRPERSON can be assigned to a University-Wide organization.');
         }
-        
+
         $data['password_hash'] = Hash::make($data['password']);
         $data['is_active']     = $request->boolean('is_active', true);
         unset($data['password']);
@@ -70,13 +69,12 @@ class UserController extends Controller
             'is_active'       => 'nullable|boolean',
             'password'        => 'nullable|string|min:8',
         ]);
-        
-        // Validate organization-specific role constraints
+
         $organization = Organization::find($data['organization_id']);
-        if ($organization->type === 'SSC' && !in_array($data['role'], ['SSC_ADMIN', 'CHAIRPERSON'])) {
-            return back()->with('error', 'Only SSC_ADMIN or CHAIRPERSON can be assigned to SSC organization.');
+        if ($organization->type === 'UNIVERSITY_WIDE' && !in_array($data['role'], ['SSC_ADMIN', 'CHAIRPERSON'])) {
+            return back()->with('error', 'Only SSC_ADMIN or CHAIRPERSON can be assigned to a University-Wide organization.');
         }
-        
+
         if (!empty($data['password'])) {
             $data['password_hash'] = Hash::make($data['password']);
         }

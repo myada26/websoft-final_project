@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory; // [Lab 7]
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class AuditLog extends Model
 {
+    use HasFactory; // [Lab 7]
     protected $table = 'audit_logs';
 
     // Schema uses 'timestamp' as the creation column; no updated_at (FR-0025 — immutable)
@@ -25,6 +27,17 @@ class AuditLog extends Model
         'ip_address',
         'timestamp',
     ];
+
+    protected static function booted(): void
+    {
+        // Guard against sessions that stored a non-integer auth identifier (e.g. username
+        // string). The user_id column is bigint — silently null it rather than crash.
+        static::creating(function (AuditLog $log) {
+            if (isset($log->user_id) && !is_numeric($log->user_id)) {
+                $log->user_id = null;
+            }
+        });
+    }
 
     protected function casts(): array
     {

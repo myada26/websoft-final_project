@@ -23,7 +23,7 @@ class FineCollectionWindowService
             ->first();
 
         if ($existingWindow && $existingWindow->isOpen()) {
-            throw new \InvalidArgumentException('Fine collection window is already open.');
+            return $existingWindow;
         }
 
         return DB::transaction(function () use ($organization, $academicYear, $user) {

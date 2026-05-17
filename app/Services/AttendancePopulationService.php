@@ -29,12 +29,12 @@ class AttendancePopulationService
             $query->whereHas('program.department', fn ($q) =>
                 $q->where('college_id', $org->linked_college_id)
             );
-        } elseif ($org->type === 'DEPT_SOCIETY' && $org->linked_department_id) {
+        } elseif ($org->type === 'CLASS_ORG' && $org->linked_department_id) {
             $query->whereHas('program', fn ($q) =>
                 $q->where('department_id', $org->linked_department_id)
             );
         }
-        // SSC: no extra filter — all enrolled students
+        // UNIVERSITY_WIDE: no extra filter — all enrolled students
 
         $inserted = 0;
 

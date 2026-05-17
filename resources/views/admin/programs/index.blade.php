@@ -3,7 +3,7 @@
 @section('page-title', 'Manage Programs')
 
 @section('content')
-<div class="max-w-6xl mx-auto pb-10" x-data="{ open: false }">
+<div class="page-shell" x-data="{ open: false }">
 
     <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
         <div>

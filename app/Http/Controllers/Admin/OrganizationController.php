@@ -36,11 +36,26 @@ class OrganizationController extends Controller
     {
         $data = $request->validate([
             'name'          => 'required|string|max:255',
-            'type'          => 'required|in:SSC,COLLEGE_COUNCIL,DEPT_SOCIETY',
+            'type'          => 'required|in:UNIVERSITY_WIDE,COLLEGE_COUNCIL,CLASS_ORG,RESERVED',
             'college_id'    => 'nullable|exists:colleges,id',
             'department_id' => 'nullable|exists:departments,id',
         ]);
-        Organization::create($data);
+
+        if ($data['type'] === 'COLLEGE_COUNCIL' && empty($data['college_id'])) {
+            return back()->withErrors(['college_id' => 'A College Council must have a linked college.'])->withInput();
+        }
+
+        if ($data['type'] === 'CLASS_ORG' && empty($data['department_id'])) {
+            return back()->withErrors(['department_id' => 'A Class Organization must have a linked department.'])->withInput();
+        }
+
+        Organization::create([
+            'name'                 => $data['name'],
+            'type'                 => $data['type'],
+            'linked_college_id'    => $data['type'] === 'COLLEGE_COUNCIL' ? ($data['college_id'] ?? null) : null,
+            'linked_department_id' => $data['type'] === 'CLASS_ORG' ? ($data['department_id'] ?? null) : null,
+        ]);
+
         return redirect()->route('admin.organizations.index')->with('success', 'Organization created.');
     }
 
@@ -57,11 +72,26 @@ class OrganizationController extends Controller
     {
         $data = $request->validate([
             'name'          => 'required|string|max:255',
-            'type'          => 'required|in:SSC,COLLEGE_COUNCIL,DEPT_SOCIETY',
+            'type'          => 'required|in:UNIVERSITY_WIDE,COLLEGE_COUNCIL,CLASS_ORG,RESERVED',
             'college_id'    => 'nullable|exists:colleges,id',
             'department_id' => 'nullable|exists:departments,id',
         ]);
-        $organization->update($data);
+
+        if ($data['type'] === 'COLLEGE_COUNCIL' && empty($data['college_id'])) {
+            return back()->withErrors(['college_id' => 'A College Council must have a linked college.'])->withInput();
+        }
+
+        if ($data['type'] === 'CLASS_ORG' && empty($data['department_id'])) {
+            return back()->withErrors(['department_id' => 'A Class Organization must have a linked department.'])->withInput();
+        }
+
+        $organization->update([
+            'name'                 => $data['name'],
+            'type'                 => $data['type'],
+            'linked_college_id'    => $data['type'] === 'COLLEGE_COUNCIL' ? ($data['college_id'] ?? null) : null,
+            'linked_department_id' => $data['type'] === 'CLASS_ORG' ? ($data['department_id'] ?? null) : null,
+        ]);
+
         return redirect()->route('admin.organizations.index')->with('success', 'Organization updated.');
     }
 

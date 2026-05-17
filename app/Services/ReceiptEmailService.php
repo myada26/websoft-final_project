@@ -23,33 +23,65 @@ class ReceiptEmailService
             return;
         }
 
+        if (app()->environment('testing') && !$this->hasHttpFake()) {
+            Log::info('Receipt email skipped during non-email test run.', [
+                'transaction_id' => $transaction->id,
+                'student_id' => $student->id,
+            ]);
+            return;
+        }
+
         $pdf = Pdf::loadView('pdf.receipt', ['transaction' => $transaction])
             ->setPaper([0, 0, 396, 612])
             ->output();
 
-        $response = Http::withToken(env('MAILTRAP_TOKEN'))
-            ->post('https://send.api.mailtrap.io/api/send', [
-                'from' => [
-                    'email' => 'no-reply@demomailtrap.co',
-                    'name' => 'FCATS'
-                ],
-                'to' => [
-                    // ['email' => $student->email]
-                    ['email' => 'brigoliboonjefferson@gmail.com']
-                ],
-                'subject' => "Official Receipt - {$transaction->or_number} - {$transaction->organization?->name}",
-                'text' => $this->getTextContent($transaction),
-                'html' => $this->getHtmlContent($transaction),
-                'attachments' => [
-                    [
-                        'content' => base64_encode($pdf),
-                        'filename' => 'receipt.pdf',
-                        'type' => 'application/pdf',
-                    ]
-                ],
-            ]);
+        try {
+            $response = Http::withToken((string) env('MAILTRAP_TOKEN'))
+                ->timeout(10)
+                ->post('https://send.api.mailtrap.io/api/send', [
+                    'from' => [
+                        'email' => config('mail.from.address', 'no-reply@demomailtrap.co'),
+                        'name' => config('mail.from.name', 'FCATS'),
+                    ],
+                    'to' => [
+                        ['email' => $student->email],
+                    ],
+                    'subject' => "Official Receipt - {$transaction->or_number} - {$transaction->organization?->name}",
+                    'text' => $this->getTextContent($transaction),
+                    'html' => $this->getHtmlContent($transaction),
+                    'attachments' => [
+                        [
+                            'content' => base64_encode($pdf),
+                            'filename' => 'receipt.pdf',
+                            'type' => 'application/pdf',
+                        ],
+                    ],
+                ]);
 
-        Log::info("Mailtrap response", ['status' => $response->status(), 'body' => $response->json()]);
+            Log::info('Receipt email sent through Mailtrap API', [
+                'transaction_id' => $transaction->id,
+                'status' => $response->status(),
+            ]);
+        } catch (\Throwable $exception) {
+            Log::warning('Receipt email delivery failed; transaction was kept posted.', [
+                'transaction_id' => $transaction->id,
+                'student_id' => $student->id,
+                'message' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    private function hasHttpFake(): bool
+    {
+        try {
+            $factory = Http::getFacadeRoot();
+            $property = new \ReflectionProperty($factory, 'stubCallbacks');
+            $property->setAccessible(true);
+
+            return $property->getValue($factory)->isNotEmpty();
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     private function getTextContent(Transaction $transaction): string

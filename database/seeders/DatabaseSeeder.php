@@ -59,7 +59,7 @@ class DatabaseSeeder extends Seeder
 
         $sscOrgId = DB::table('organizations')->insertGetId([
             'name' => 'Supreme Student Council',
-            'type' => 'SSC',
+            'type' => 'UNIVERSITY_WIDE',
             'linked_college_id' => null,
             'linked_department_id' => null,
             'is_active' => true,
@@ -116,7 +116,7 @@ class DatabaseSeeder extends Seeder
                 'academic_year_id' => $academicYearId,
                 'program_id' => $programId,
                 'year_level' => 4,
-                'is_regular' => true,
+                'student_type' => 'REGULAR',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -128,7 +128,7 @@ class DatabaseSeeder extends Seeder
                 'academic_year_id' => $academicYearId,
                 'program_id' => $programId,
                 'year_level' => 3,
-                'is_regular' => true,
+                'student_type' => 'REGULAR',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -190,7 +190,7 @@ class DatabaseSeeder extends Seeder
                 'academic_year_id' => $academicYearId,
                 'program_id' => $programId,
                 'year_level' => $student['year'],
-                'is_regular' => true,
+                'student_type' => 'REGULAR',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -203,7 +203,7 @@ class DatabaseSeeder extends Seeder
                 'academic_year_id' => $academicYearId,
                 'program_id' => $bsmeProgramId,
                 'year_level' => $yearLevel,
-                'is_regular' => true,
+                'student_type' => 'REGULAR',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -286,6 +286,16 @@ class DatabaseSeeder extends Seeder
         foreach ($users as $role => $user) {
             $userIds[$role] = DB::table('users')->insertGetId($user);
         }
+
+        DB::table('audit_logs')->insert([
+            'user_id' => $userIds['SSC_ADMIN'],
+            'action' => 'DATABASE_SEEDED',
+            'entity_type' => 'SYSTEM',
+            'entity_id' => null,
+            'details' => json_encode(['seed' => static::class]),
+            'ip_address' => '127.0.0.1',
+            'timestamp' => now(),
+        ]);
 
         DB::table('or_sequences')->insert([
             'organization_id' => $coeOrgId,

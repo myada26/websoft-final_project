@@ -2,437 +2,259 @@
 @section('title', 'Sign In')
 
 @push('styles')
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-        --ink: #0d1411;
-        --ink-2: #1c2a23;
-        --muted: #5b6f66;
-        --muted-2: #8aa89a;
-        --line: #e5ece8;
-        --line-2: #d8e2dc;
-        --bg: #f6f8f6;
-        --green: #093816;
-        --green-2: #0f4d20;
-        --green-accent: #1a7a41;
-        --gold: #c9a44a;
-        --error: #b42318;
-        --error-bg: #fef3f2;
+        --green-400:    #4ade80;
+        --green-500:    #22c55e;
+        --green-600:    #16a34a;
+        --green-700:    #15803d;
+        --text-main:    #111827;
+        --text-sub:     #6b7280;
+        --text-ghost:   #9ca3af;
+        --error:        #b42318;
+        --error-bg:     #fef3f2;
+        --error-border: #fecdca;
+        --radius-modal: 2.5rem;
+        --radius-input: 1rem;
+        --radius-btn:   1rem;
     }
 
-    body {
-        background: var(--bg) !important;
-        font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important;
-        color: var(--ink) !important;
-    }
+    html, body { width: 100%; min-height: 100vh; }
+    body { font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
 
-    .auth-shell {
-        display: flex;
-        min-height: 100vh;
-        width: 100%;
-        background: #fff;
-    }
-
-    /* ============ LEFT — EDITORIAL PANEL ============ */
-    .auth-aside {
-        display: none;
+    /* ── Background shell ── */
+    .gl-shell {
         position: relative;
-        flex: 1;
         min-height: 100vh;
-        background: radial-gradient(ellipse at top left, #0f4d20 0%, #093816 55%, #061f0c 100%);
-        color: #eaf3ec;
-        padding: 56px 64px;
-        overflow: hidden;
-        flex-direction: column;
-    }
-
-    .auth-aside .rings {
-        position: absolute;
-        inset: -120px auto auto -180px;
-        opacity: 0.18;
-        pointer-events: none;
-    }
-
-    .auth-aside .rings svg {
-        width: 780px;
-        height: 780px;
-    }
-
-    .auth-aside .glow {
-        position: absolute;
-        right: -160px;
-        bottom: -160px;
-        width: 520px;
-        height: 520px;
-        border-radius: 999px;
-        background: radial-gradient(closest-side, rgba(201, 164, 74, .18), transparent 70%);
-        pointer-events: none;
-    }
-
-    .aside-header {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        z-index: 2;
-    }
-
-    .brand {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .brand-mark {
-        width: 38px;
-        height: 38px;
-        border-radius: 10px;
-        background: rgba(255, 255, 255, .08);
-        border: 1px solid rgba(255, 255, 255, .14);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: var(--gold);
+        padding: 24px;
+        overflow: hidden;
+        background: #f0f7f2;
     }
 
-    .brand-text strong {
-        display: block;
-        font-family: 'Fraunces', serif;
-        font-weight: 600;
-        font-size: 18px;
-        letter-spacing: .02em;
-        color: #fff;
+    /* Background image — full cover */
+    .gl-bg-img {
+        position: absolute;
+        inset: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        pointer-events: none;
     }
 
-    .brand-text span {
-        display: block;
-        font-size: 11px;
-        letter-spacing: .12em;
-        text-transform: uppercase;
-        color: rgba(234, 243, 236, .55);
-        margin-top: 2px;
+    /* Subtle white-wash overlay (no blur) */
+    .gl-blur-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(255,255,255,0.08);
+        pointer-events: none;
     }
 
-    .version-pill {
-        font-size: 11px;
-        letter-spacing: .12em;
-        text-transform: uppercase;
-        color: rgba(234, 243, 236, .6);
-        padding: 6px 10px;
-        border: 1px solid rgba(255, 255, 255, .1);
+    /* Atmospheric light leaks (mix-blend-overlay) */
+    .gl-light-leak {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+        mix-blend-mode: overlay;
+    }
+    .gl-light-leak-1 {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%) rotate(-34deg);
+        width: 1100px; height: 260px;
+        background: rgba(255,255,255,0.55);
+        filter: blur(55px);
         border-radius: 999px;
     }
-
-    .aside-hero {
-        position: relative;
-        z-index: 2;
-        margin-top: auto;
-        margin-bottom: 56px;
-        max-width: 560px;
+    .gl-light-leak-2 {
+        position: absolute;
+        top: 5%; left: -10%;
+        width: 700px; height: 180px;
+        background: rgba(187,247,208,0.28);
+        filter: blur(75px);
+        border-radius: 999px;
+        transform: rotate(-45deg);
     }
 
-    .eyebrow {
-        display: inline-flex;
+    /* ── Modal wrapper ── */
+    .gl-wrap {
+        position: relative;
+        width: 100%;
+        max-width: 430px;
+        animation: fadeInUp .65s cubic-bezier(.16,1,.3,1) both;
+        z-index: 10;
+    }
+
+    /* Glass surface */
+    .gl-modal {
+        position: relative;
+        background: linear-gradient(165deg, rgba(255,255,255,0.72), rgba(255,255,255,0.50));
+        backdrop-filter: blur(28px) saturate(1.3);
+        -webkit-backdrop-filter: blur(28px) saturate(1.3);
+        border-radius: var(--radius-modal);
+        border: 1.5px solid rgba(255,255,255,0.68);
+        box-shadow:
+            0 20px 60px -15px rgba(34,197,94,0.14),
+            0 8px 30px -8px rgba(0,0,0,0.07),
+            0 2px 8px rgba(0,0,0,0.04),
+            inset 0 1px 0 rgba(255,255,255,0.90);
+        padding: 44px 40px 40px;
+        overflow: hidden;
+    }
+
+    /* Ambient green glow top-center */
+    .gl-modal::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 50%;
+        transform: translateX(-50%);
+        width: 150%; height: 140px;
+        background: linear-gradient(to bottom, rgba(74,222,128,0.08), transparent);
+        pointer-events: none;
+    }
+
+    /* Top shimmer line */
+    .gl-modal::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.90), transparent);
+        pointer-events: none;
+    }
+
+    /* ── Header ── */
+    .gl-header {
+        display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 8px;
-        font-size: 11px;
-        letter-spacing: .18em;
-        text-transform: uppercase;
-        color: var(--gold);
-        font-weight: 600;
-        margin-bottom: 24px;
-    }
-
-    .eyebrow::before {
-        content: "";
-        width: 28px;
-        height: 1px;
-        background: var(--gold);
-    }
-
-    .aside-hero h1 {
-        font-family: 'Fraunces', serif;
-        font-weight: 500;
-        font-size: 56px;
-        line-height: 1.05;
-        letter-spacing: -0.02em;
-        margin: 0 0 20px;
-        color: #fff;
-    }
-
-    .aside-hero h1 em {
-        font-style: italic;
-        font-weight: 400;
-        color: var(--gold);
-    }
-
-    .aside-hero p {
-        font-size: 15px;
-        line-height: 1.65;
-        color: rgba(234, 243, 236, .72);
-        margin: 0;
-        max-width: 480px;
-    }
-
-    .team-block {
-        position: relative;
-        z-index: 2;
-        border-top: 1px solid rgba(255, 255, 255, .1);
-        padding-top: 24px;
+        gap: 20px;
         margin-bottom: 32px;
     }
 
-    .team-label {
-        font-size: 11px;
-        letter-spacing: .18em;
-        text-transform: uppercase;
-        color: rgba(234, 243, 236, .55);
-        font-weight: 600;
-        margin-bottom: 16px;
-    }
-
-    .team-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 14px 20px;
-    }
-
-    .team-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .team-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 999px;
-        background: linear-gradient(135deg, rgba(201, 164, 74, .25), rgba(255, 255, 255, .08));
-        border: 1px solid rgba(255, 255, 255, .12);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: 'Fraunces', serif;
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--gold);
+    .gl-logo {
+        width: 56px; height: 56px;
+        border-radius: 1rem;
+        background: linear-gradient(135deg, var(--green-400), var(--green-600));
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 8px 24px rgba(34,197,94,0.35), 0 0 0 4px rgba(255,255,255,0.65);
+        color: #fff;
         flex-shrink: 0;
     }
 
-    .team-info {
-        line-height: 1.25;
-        min-width: 0;
-    }
-
-    .team-info strong {
-        display: block;
-        font-size: 13px;
-        font-weight: 600;
-        color: #fff;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .team-info span {
-        display: block;
-        font-size: 11px;
-        color: rgba(234, 243, 236, .55);
-        margin-top: 2px;
-    }
-
-    .aside-footer {
-        position: relative;
-        z-index: 2;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 12px;
-        color: rgba(234, 243, 236, .5);
-        border-top: 1px solid rgba(255, 255, 255, .08);
-        padding-top: 20px;
-    }
-
-    .aside-footer .secure {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .aside-footer .dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 999px;
-        background: #4ade80;
-        box-shadow: 0 0 0 3px rgba(74, 222, 128, .2);
-    }
-
-    /* ============ RIGHT — FORM PANEL ============ */
-    .auth-main {
-        flex: 1;
-        min-height: 100vh;
-        background: #fff;
-        display: flex;
-        flex-direction: column;
-        padding: 32px 40px;
-        position: relative;
-    }
-
-    .auth-top {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 8px;
-        font-size: 13px;
-        color: var(--muted);
-    }
-
-    .auth-top a {
-        color: var(--green-accent);
-        font-weight: 600;
-        text-decoration: none;
-    }
-
-    .auth-top a:hover {
-        text-decoration: underline;
-    }
-
-    .auth-card {
-        margin: auto;
-        width: 100%;
-        max-width: 440px;
-        padding: 24px 0;
-    }
-
-    .form-eyebrow {
-        font-size: 11px;
-        letter-spacing: .18em;
-        text-transform: uppercase;
-        color: var(--green-accent);
-        font-weight: 700;
-        margin-bottom: 14px;
-    }
-
-    .auth-card h2 {
-        font-family: 'Fraunces', serif;
+    .gl-title { text-align: center; }
+    .gl-title h1 {
+        font-size: 27px;
         font-weight: 500;
-        font-size: 40px;
-        line-height: 1.1;
         letter-spacing: -0.02em;
-        color: var(--ink);
-        margin: 0 0 12px;
+        line-height: 1.25;
+        color: var(--text-main);
     }
-
-    .auth-card .lede {
+    .gl-title p {
+        margin-top: 8px;
         font-size: 14px;
-        line-height: 1.6;
-        color: var(--muted);
-        margin: 0 0 32px;
+        font-weight: 400;
+        color: var(--text-sub);
+        line-height: 1.5;
     }
 
-    .alert-box {
+    /* ── Alert ── */
+    .gl-alert {
         display: flex;
         align-items: flex-start;
         gap: 10px;
         padding: 12px 14px;
         background: var(--error-bg);
-        border: 1px solid #fecdca;
-        border-radius: 10px;
+        border: 1px solid var(--error-border);
+        border-radius: 12px;
         margin-bottom: 20px;
         color: var(--error);
         font-size: 13px;
         font-weight: 500;
     }
+    .gl-alert svg { flex-shrink: 0; margin-top: 1px; }
 
-    .field {
-        margin-bottom: 18px;
+    /* ── Form fields ── */
+    .gl-fields { display: flex; flex-direction: column; gap: 18px; }
+
+    .gl-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.01em;
+        color: #374151;
+        margin-bottom: 7px;
+        padding-left: 2px;
     }
 
-    .field-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        margin-bottom: 8px;
-    }
-
-    .field-head label {
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--ink-2);
-        letter-spacing: .02em;
-    }
-
-    .field-head a {
-        font-size: 12px;
-        color: var(--green-accent);
-        font-weight: 600;
-        text-decoration: none;
-    }
-
-    .field-head a:hover {
-        text-decoration: underline;
-    }
-
-    .input-wrap {
+    .gl-input-wrap {
         position: relative;
         display: flex;
         align-items: center;
-        border: 1px solid var(--line-2);
-        border-radius: 10px;
-        background: #fff;
-        transition: border-color .15s, box-shadow .15s;
+        background: rgba(255,255,255,0.40);
+        border: 1.5px solid rgba(255,255,255,0.60);
+        border-radius: var(--radius-input);
+        transition: background .25s, border-color .25s, box-shadow .25s;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
     }
-
-    .input-wrap:focus-within {
-        border-color: var(--green-accent);
-        box-shadow: 0 0 0 4px rgba(26, 122, 65, .08);
+    .gl-input-wrap:focus-within {
+        background: rgba(255,255,255,0.68);
+        border-color: rgba(74,222,128,0.55);
+        box-shadow: 0 0 0 3px rgba(74,222,128,0.14), 0 1px 4px rgba(0,0,0,0.04);
     }
-
-    .input-wrap.has-error {
+    .gl-input-wrap:hover:not(:focus-within) {
+        background: rgba(255,255,255,0.52);
+    }
+    .gl-input-wrap.has-error {
         border-color: #f97066;
         background: var(--error-bg);
     }
 
-    .input-wrap .icon {
+    .gl-input-icon {
         display: flex;
         align-items: center;
-        justify-content: center;
         padding-left: 14px;
-        color: var(--muted-2);
+        color: var(--text-ghost);
+        flex-shrink: 0;
+        transition: color .2s;
     }
+    .gl-input-wrap:focus-within .gl-input-icon { color: var(--green-500); }
 
-    .input-wrap input {
+    .gl-input-wrap input {
         flex: 1;
         border: 0;
         outline: none;
         background: transparent;
-        padding: 13px 14px;
+        padding: 14px 14px;
         font-family: inherit;
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--ink);
-    }
-
-    .input-wrap input::placeholder {
-        color: #9aada4;
+        font-size: 14.5px;
         font-weight: 400;
+        color: var(--text-main);
+        letter-spacing: 0.01em;
+        min-width: 0;
+    }
+    .gl-input-wrap input::placeholder {
+        color: var(--text-ghost);
+        font-weight: 300;
     }
 
-    .toggle-pw {
+    .gl-pw-toggle {
         border: 0;
         background: transparent;
         padding: 0 14px;
-        color: var(--muted-2);
+        color: var(--text-ghost);
         cursor: pointer;
         display: flex;
         align-items: center;
+        transition: color .2s;
+        flex-shrink: 0;
     }
+    .gl-pw-toggle:hover { color: var(--text-main); }
 
-    .toggle-pw:hover {
-        color: var(--ink-2);
-    }
-
-    .field-error {
+    .gl-field-error {
         display: flex;
         align-items: center;
         gap: 6px;
@@ -442,369 +264,369 @@
         font-weight: 500;
     }
 
-    .row-remember {
+    /* ── Remember row ── */
+    .gl-remember {
         display: flex;
         align-items: center;
         gap: 10px;
-        margin: 8px 0 24px;
+        margin: 10px 0 22px;
         cursor: pointer;
         user-select: none;
     }
-
-    .row-remember input {
+    .gl-remember input[type="checkbox"] {
         position: absolute;
         opacity: 0;
         pointer-events: none;
     }
-
-    .check-box {
-        width: 18px;
-        height: 18px;
-        border-radius: 5px;
-        border: 1.5px solid var(--line-2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #fff;
-        transition: all .15s;
+    .gl-check {
+        width: 20px; height: 20px;
+        border-radius: 6px;
+        border: 2px solid rgba(156,163,175,0.70);
+        background: rgba(255,255,255,0.50);
+        display: flex; align-items: center; justify-content: center;
+        transition: all .2s cubic-bezier(.4,0,.2,1);
         flex-shrink: 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .gl-remember input:checked ~ .gl-check {
+        background: var(--green-500);
+        border-color: transparent;
+        box-shadow: 0 2px 8px rgba(34,197,94,0.32);
+    }
+    .gl-check-icon { opacity: 0; transition: opacity .15s; }
+    .gl-remember input:checked ~ .gl-check .gl-check-icon { opacity: 1; }
+    .gl-remember-lbl {
+        font-size: 13.5px;
+        font-weight: 400;
+        color: var(--text-sub);
     }
 
-    .row-remember input:checked+.check-box {
-        background: var(--green-accent);
-        border-color: var(--green-accent);
-    }
-
-    .row-remember input:checked+.check-box svg {
-        opacity: 1;
-    }
-
-    .check-box svg {
-        opacity: 0;
-        transition: opacity .15s;
-    }
-
-    .row-remember span.lbl {
-        font-size: 13px;
-        color: var(--ink-2);
-        font-weight: 500;
-    }
-
-    .submit-btn {
+    /* ── Submit button ── */
+    .gl-submit {
         width: 100%;
-        padding: 14px 18px;
+        padding: 14px 24px;
         border: 0;
-        border-radius: 10px;
-        background: var(--ink);
+        border-radius: var(--radius-btn);
+        background: linear-gradient(135deg, var(--green-500), var(--green-600));
         color: #fff;
-        font-size: 14px;
+        font-family: inherit;
+        font-size: 15px;
         font-weight: 600;
+        letter-spacing: 0.01em;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 10px;
-        transition: background-color .15s, transform .15s;
-        font-family: inherit;
+        box-shadow: 0 8px 20px -6px rgba(34,197,94,0.50);
+        transition: transform .2s, box-shadow .2s, background .2s;
     }
-
-    .submit-btn:hover {
-        background: var(--green-2);
+    .gl-submit:hover {
+        background: linear-gradient(135deg, var(--green-600), var(--green-700));
+        transform: translateY(-1px);
+        box-shadow: 0 10px 28px -6px rgba(34,197,94,0.58), 0 2px 8px rgba(34,197,94,0.22);
     }
+    .gl-submit:active { transform: translateY(0); }
 
-    .submit-btn:active {
-        transform: translateY(1px);
+    /* ── Portal link at bottom ── */
+    .gl-portal-link {
+        margin-top: 22px;
+        text-align: center;
+        font-size: 13.5px;
+        color: var(--text-sub);
     }
-
-    .divider {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        margin: 28px 0 18px;
-        font-size: 11px;
-        letter-spacing: .14em;
-        text-transform: uppercase;
-        color: var(--muted-2);
-        font-weight: 600;
-    }
-
-    .divider::before,
-    .divider::after {
-        content: "";
-        flex: 1;
-        height: 1px;
-        background: var(--line);
-    }
-
-    .quick-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-
-    .quick-btn {
-        text-align: left;
-        padding: 12px 14px;
-        border: 1px solid var(--line-2);
-        border-radius: 10px;
-        background: #fff;
+    .gl-portal-link button {
+        background: none;
+        border: none;
         cursor: pointer;
         font-family: inherit;
-        transition: border-color .15s, background-color .15s;
-    }
-
-    .quick-btn:hover {
-        border-color: var(--green-accent);
-        background: #f8fbf9;
-    }
-
-    .quick-btn strong {
-        display: block;
-        font-size: 13px;
+        font-size: 13.5px;
         font-weight: 600;
-        color: var(--ink);
-        margin-bottom: 2px;
+        color: var(--green-600);
+        padding: 0;
+        transition: color .2s;
     }
+    .gl-portal-link button:hover { color: var(--green-700); }
 
-    .quick-btn span {
+    /* ── Panel switching ── */
+    .gl-portal-panel { display: none; }
+    .gl-portal-panel.is-open { display: block; }
+    .gl-login-panel { display: block; }
+    .gl-login-panel.is-hidden { display: none; }
+
+    /* ── Divider ── */
+    .gl-divider {
+        position: relative;
+        margin: 20px 0;
+    }
+    .gl-divider::before {
+        content: '';
+        position: absolute;
+        inset: 50% 0 auto;
+        height: 1px;
+        background: rgba(0,0,0,0.08);
+    }
+    .gl-divider span {
+        position: relative;
         display: block;
-        font-size: 11px;
-        color: var(--muted);
-        letter-spacing: .04em;
-    }
-
-    .legal {
-        margin-top: 28px;
-        font-size: 12px;
-        color: var(--muted);
-        line-height: 1.55;
         text-align: center;
+        font-size: 12.5px;
+        color: var(--text-ghost);
+        background: transparent;
+        padding: 0 12px;
+        width: fit-content;
+        margin: 0 auto;
+        background: transparent;
     }
 
-    .legal a {
-        color: var(--ink-2);
-        text-decoration: underline;
-        text-decoration-color: var(--line-2);
-        text-underline-offset: 3px;
+    /* ── Animations ── */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px) scale(0.98); }
+        to   { opacity: 1; transform: translateY(0)   scale(1);    }
     }
 
-    .legal a:hover {
-        text-decoration-color: var(--green-accent);
-    }
-
-    /* ============ RESPONSIVE ============ */
-    @media (min-width: 1024px) {
-        .auth-aside {
-            display: flex;
-            max-width: 56%;
-        }
-    }
-
-    @media (max-width: 1023px) {
-        .auth-main {
-            padding: 24px;
-        }
-    }
-
-    @media (max-width: 640px) {
-        .auth-card h2 {
-            font-size: 32px;
-        }
-
-        .auth-main {
-            padding: 20px;
-        }
-
-        .quick-grid {
-            grid-template-columns: 1fr;
-        }
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+        .gl-modal { padding: 36px 24px 32px; }
+        .gl-title h1 { font-size: 23px; }
     }
 </style>
 @endpush
 
 @section('content')
-<div class="auth-shell">
+<div class="gl-shell">
 
-    {{-- ============ LEFT — EDITORIAL PANEL ============ --}}
-    <aside class="auth-aside" aria-label="FCATS introduction">
-        <div class="rings" aria-hidden="true">
-            <svg viewBox="0 0 600 600" fill="none" stroke="#c9a44a" stroke-width="1">
-                @for ($i = 1; $i
-                <= 14; $i++)
-                    <circle cx="300" cy="300" r="{{ 14 + $i * 26 }}" />
-                @endfor
-            </svg>
-        </div>
-        <div class="glow" aria-hidden="true"></div>
+    {{-- Background image + cinematic overlays --}}
+    <img src="{{ asset('img/auth-bg.png') }}" alt="" class="gl-bg-img" aria-hidden="true">
+    <div class="gl-blur-overlay" aria-hidden="true"></div>
+    <div class="gl-light-leak" aria-hidden="true">
+        <div class="gl-light-leak-1"></div>
+        <div class="gl-light-leak-2"></div>
+    </div>
 
-        <header class="aside-header">
-            <div class="brand">
-                <div class="brand-mark">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <rect width="18" height="11" x="3" y="11" rx="2" />
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    {{-- Glass modal --}}
+    <div class="gl-wrap">
+        <div class="gl-modal">
+
+            {{-- Header --}}
+            <div class="gl-header">
+                <div class="gl-logo">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
                     </svg>
                 </div>
-                <div class="brand-text">
-                    <strong>FCATS</strong>
-                    <span>Fee &amp; Fine Collection Tracking System</span>
+                <div class="gl-title">
+                    <h1 id="gl-heading">Welcome Back</h1>
+                    <p  id="gl-sub">Sign in to continue to FCATS</p>
                 </div>
             </div>
-            <div class="version-pill">v2.4</div>
-        </header>
 
-        <div class="aside-hero">
-            <div class="eyebrow">The Platform</div>
-            <h1>Fee collection,<br><em>reconciled</em> in real time.</h1>
-            <p>A secure platform built for student organizations and administrators — track every transaction, generate audit-ready reports, and manage financial records with full transparency.</p>
-        </div>
+            {{-- ── Officer login panel ── --}}
+            <div class="gl-login-panel" id="gl-login">
 
-        <div class="team-block">
-            <div class="team-label">Project Team</div>
-            <div class="team-grid">
-                @foreach([
-                ['CC', 'Carlos Fidel Castro', 'Proponent · Developer'],
-                ['HS', 'Heaven Soberano', 'Proponent'],
-                ['RA', 'Rey Angelo Arsenal', 'Proponent'],
-                ['JB', 'Boon Jeferson Brigoli', 'Developer'],
-                ['JB', 'Jao Beronio', 'Developer'],
-                ['PL', 'Paul Juluis Labrador','Developer'],
-                ] as [$initials, $name, $role])
-                <div class="team-row">
-                    <div class="team-avatar">{{ $initials }}</div>
-                    <div class="team-info">
-                        <strong>{{ $name }}</strong>
-                        <span>{{ $role }}</span>
-                    </div>
+                {{-- Error alert --}}
+                @if(session('error') || $errors->has('session') || $errors->has('locked'))
+                <div class="gl-alert" role="alert">
+                    <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>{{ session('error') ?? $errors->first('session') ?? $errors->first('locked') }}</span>
                 </div>
-                @endforeach
-            </div>
-        </div>
+                @endif
 
-        <div class="aside-footer">
-            <span>© CMU SUPREME STUDENT COUNCIL · All rights reserved</span>
-            <span class="secure">
-                <span class="dot"></span>
-                Encrypted · TLS 1.3
-            </span>
-        </div>
-    </aside>
+                <form method="POST" action="{{ route('login') }}" novalidate>
+                    @csrf
 
-    {{-- ============ RIGHT — FORM PANEL ============ --}}
-    <main class="auth-main">
-        <div class="auth-top">
-            <span>Need access?</span>
-            <a href="#">Contact admin</a>
-        </div>
+                    <div class="gl-fields">
 
-        <div class="auth-card">
-            <div class="form-eyebrow">Sign In</div>
-            <h2>Welcome back</h2>
-            <p class="lede">Enter your credentials to continue. Sessions expire after 30 minutes of inactivity.</p>
+                        {{-- Username --}}
+                        <div class="gl-field">
+                            <label class="gl-label" for="username">Username</label>
+                            <div class="gl-input-wrap {{ $errors->has('username') ? 'has-error' : '' }}">
+                                <span class="gl-input-icon" aria-hidden="true">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="9" cy="7" r="4"/>
+                                        <path d="M22 11h-6M19 8v6"/>
+                                    </svg>
+                                </span>
+                                <input
+                                    type="text"
+                                    id="username"
+                                    name="username"
+                                    value="{{ old('username') }}"
+                                    placeholder="e.g. 2024-000001-IT"
+                                    autocomplete="username"
+                                    autofocus>
+                            </div>
+                            @error('username')
+                            <div class="gl-field-error">
+                                <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd"/></svg>
+                                <span>{{ $message }}</span>
+                            </div>
+                            @enderror
+                        </div>
 
-            @if(session('error') || $errors->has('session') || $errors->has('locked'))
-            <div class="alert-box">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style="flex-shrink:0;margin-top:1px">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd"></path>
-                </svg>
-                <span>{{ session('error') ?? $errors->first('session') ?? $errors->first('locked') }}</span>
-            </div>
-            @endif
+                        {{-- Password --}}
+                        <div class="gl-field">
+                            <label class="gl-label" for="password">Password</label>
+                            <div class="gl-input-wrap {{ $errors->has('password') ? 'has-error' : '' }}">
+                                <span class="gl-input-icon" aria-hidden="true">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="11" width="18" height="11" rx="2"/>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                    </svg>
+                                </span>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    placeholder="Enter your password"
+                                    autocomplete="current-password">
+                                <button type="button" class="gl-pw-toggle" id="gl-pw-btn" aria-label="Show password">
+                                    <svg id="gl-eye-show" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                    <svg id="gl-eye-hide" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                                        <line x1="1" y1="1" x2="23" y2="23"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            @error('password')
+                            <div class="gl-field-error">
+                                <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd"/></svg>
+                                <span>{{ $message }}</span>
+                            </div>
+                            @enderror
+                        </div>
 
-            <form method="POST" action="{{ route('login') }}" novalidate>
-                @csrf
+                    </div>{{-- /.gl-fields --}}
 
-                <div class="field">
-                    <div class="field-head">
-                        <label for="username">Username or email</label>
-                    </div>
-                    <div class="input-wrap {{ $errors->has('username') ? 'has-error' : '' }}">
-                        <span class="icon" aria-hidden="true">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                                <circle cx="9" cy="7" r="4" />
-                                <path d="M22 11h-6M19 8v6" />
+                    {{-- Remember me --}}
+                    <label class="gl-remember">
+                        <input type="checkbox" name="remember" value="1" {{ old('remember') ? 'checked' : '' }} id="gl-remember-cb">
+                        <span class="gl-check" aria-hidden="true">
+                            <svg class="gl-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                <path d="M5 13l4 4L19 7" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </span>
+                        <span class="gl-remember-lbl">Keep me signed in</span>
+                    </label>
+
+                    <button type="submit" class="gl-submit">
+                        <span>Sign In</span>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                        </svg>
+                    </button>
+
+                </form>
+
+                {{-- Student portal switch --}}
+                <div class="gl-portal-link">
+                    Student? <button type="button" id="gl-show-portal">Check your fee status →</button>
+                </div>
+
+            </div>{{-- /#gl-login --}}
+
+            {{-- ── Student accountability portal panel ── --}}
+            <div class="gl-portal-panel" id="gl-portal">
+                <div class="gl-portal-link" style="margin-top:0;margin-bottom:24px;text-align:left">
+                    <button type="button" id="gl-back-login">← Back to Sign In</button>
+                </div>
+                <div style="text-align:center;margin-bottom:18px;">
+                    <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#22c55e,#16a34a);display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                    </div>
+                    <h2 style="font-size:1.15rem;font-weight:700;color:#111827;margin:0 0 4px;">Fee Status Check</h2>
+                    <p style="font-size:.85rem;color:#6b7280;margin:0;">Enter your Student ID to view your fee balance.</p>
+                </div>
+                <form method="GET" action="{{ route('public.check-fees') }}">
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block;font-size:.8rem;font-weight:600;color:#374151;margin-bottom:6px;letter-spacing:.3px;">Student ID Number</label>
                         <input
                             type="text"
-                            id="username"
-                            name="username"
-                            value="{{ old('username') }}"
-                            placeholder="e.g. admin.ssc"
-                            autocomplete="username"
-                            autofocus>
+                            name="student_number"
+                            placeholder="e.g. 2024000001"
+                            maxlength="10"
+                            pattern="\d{10}"
+                            required
+                            style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.6);background:rgba(255,255,255,0.40);font-size:.95rem;color:#111827;outline:none;box-sizing:border-box;"
+                            onfocus="this.style.borderColor='#22c55e';this.style.boxShadow='0 0 0 3px rgba(34,197,94,.15)'"
+                            onblur="this.style.borderColor='rgba(255,255,255,0.6)';this.style.boxShadow='none'"
+                        />
                     </div>
-                    @error('username')
-                    <div class="field-error">
-                        <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd"></path>
-                        </svg>
-                        <span>{{ $message }}</span>
-                    </div>
-                    @enderror
-                </div>
+                    <button type="submit" style="width:100%;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-weight:700;font-size:.95rem;cursor:pointer;box-shadow:0 4px 14px rgba(22,163,74,.35);">
+                        Check Fee Status
+                    </button>
+                </form>
+            </div>
 
-                <div class="field">
-                    <div class="field-head">
-                        <label for="password">Password</label>
-                        <a href="#">Forgot password?</a>
-                    </div>
-                    <div class="input-wrap {{ $errors->has('password') ? 'has-error' : '' }}">
-                        <span class="icon" aria-hidden="true">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="4" y="11" width="16" height="10" rx="2" />
-                                <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-                            </svg>
-                        </span>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            placeholder="Enter your password"
-                            autocomplete="current-password">
-                        <button type="button" class="toggle-pw" aria-label="Show password"
-                            onclick="const f=document.getElementById('password'); f.type=f.type==='password'?'text':'password'; this.setAttribute('aria-label', f.type==='password'?'Show password':'Hide password');">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
-                                <circle cx="12" cy="12" r="3" />
-                            </svg>
-                        </button>
-                    </div>
-                    @error('password')
-                    <div class="field-error">
-                        <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd"></path>
-                        </svg>
-                        <span>{{ $message }}</span>
-                    </div>
-                    @enderror
-                </div>
+        </div>{{-- /.gl-modal --}}
+    </div>{{-- /.gl-wrap --}}
 
-                <label class="row-remember">
-                    <input type="checkbox" name="remember" value="1" {{ old('remember') ? 'checked' : '' }}>
-                    <span class="check-box" aria-hidden="true">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 6 9 17l-5-5" />
-                        </svg>
-                    </span>
-                    <span class="lbl">Keep me signed in on this device</span>
-                </label>
+</div>{{-- /.gl-shell --}}
 
-                <button type="submit" class="submit-btn">
-                    <span>Sign in</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M5 12h14" />
-                        <path d="m12 5 7 7-7 7" />
-                    </svg>
-                </button>
+<script>
+(function () {
+    /* Password toggle */
+    var pwInput = document.getElementById('password');
+    var pwBtn   = document.getElementById('gl-pw-btn');
+    var eyeShow = document.getElementById('gl-eye-show');
+    var eyeHide = document.getElementById('gl-eye-hide');
 
-                <p class="legal">
-                    By signing in you agree to the
-                    <a href="#">Terms of Use</a> and <a href="#">Privacy Policy</a>.
-                </p>
-            </form>
-        </div>
-    </main>
-</div>
+    if (pwBtn) {
+        pwBtn.addEventListener('click', function () {
+            var isPassword = pwInput.type === 'password';
+            pwInput.type = isPassword ? 'text' : 'password';
+            eyeShow.style.display = isPassword ? 'none' : '';
+            eyeHide.style.display = isPassword ? ''     : 'none';
+            pwBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+        });
+    }
+
+    /* Checkbox visual sync */
+    var cb    = document.getElementById('gl-remember-cb');
+    var check = cb ? cb.closest('.gl-remember').querySelector('.gl-check') : null;
+    if (cb && check) {
+        function syncCheck() {
+            check.style.background  = cb.checked ? '#22c55e' : 'rgba(255,255,255,.50)';
+            check.style.borderColor = cb.checked ? 'transparent' : '';
+            check.style.boxShadow   = cb.checked ? '0 2px 8px rgba(34,197,94,.32)' : '';
+            check.querySelector('.gl-check-icon').style.opacity = cb.checked ? '1' : '0';
+        }
+        cb.addEventListener('change', syncCheck);
+        syncCheck();
+    }
+
+    /* Panel switch */
+    var loginPanel  = document.getElementById('gl-login');
+    var portalPanel = document.getElementById('gl-portal');
+    var heading     = document.getElementById('gl-heading');
+    var sub         = document.getElementById('gl-sub');
+    var showPortal  = document.getElementById('gl-show-portal');
+    var backLogin   = document.getElementById('gl-back-login');
+
+    if (showPortal) {
+        showPortal.addEventListener('click', function () {
+            loginPanel.classList.add('is-hidden');
+            portalPanel.classList.add('is-open');
+            heading.textContent = 'Fee Status Check';
+            sub.textContent     = 'Enter your student ID to view your records';
+        });
+    }
+    if (backLogin) {
+        backLogin.addEventListener('click', function () {
+            portalPanel.classList.remove('is-open');
+            loginPanel.classList.remove('is-hidden');
+            heading.textContent = 'Welcome Back';
+            sub.textContent     = 'Sign in to continue to FCATS';
+        });
+    }
+})();
+</script>
 @endsection

@@ -3,7 +3,7 @@
 @section('page-title', 'Void Requests')
 
 @section('content')
-<div class="max-w-6xl mx-auto pb-10" x-data="{ open: false }">
+<div class="page-shell" x-data="{ open: false }">
 
     {{-- Warning banner --}}
     <div class="flex items-start gap-4 px-5 py-4 rounded-xl bg-[#fef9c3] border border-[#fde047] mb-6">

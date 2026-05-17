@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Org\DashboardController; // [AI Narrator]
+use App\Http\Controllers\Org\ReportController; // [AI Narrator]
 use App\Http\Controllers\PublicAccountabilityController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,7 +23,7 @@ Route::prefix('admin')
     ->middleware(['auth', 'session.timeout', 'role:SSC_ADMIN'])
     ->name('admin.')
     ->group(function () {
-        Route::get('/dashboard', fn() => redirect()->route('admin.colleges.index'))->name('dashboard');
+        Route::get('/dashboard', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'index'])->name('dashboard');
 
         // Academic Structure
         Route::resource('colleges',       \App\Http\Controllers\Admin\CollegeController::class)->except(['show']);
@@ -38,22 +40,39 @@ Route::prefix('admin')
         Route::resource('organizations',  \App\Http\Controllers\Admin\OrganizationController::class)->except(['show']);
 
         // Fee Profiles (SSC Admin only)
+        Route::patch('fee-profiles/grid-row', [\App\Http\Controllers\Admin\FeeProfileController::class, 'updateGridRow'])
+            ->name('fee-profiles.grid-row.update');
         Route::resource('fee-profiles', \App\Http\Controllers\Admin\FeeProfileController::class)->except(['show']);
 
         // Students (read-only) + import
-        Route::get('students',            [\App\Http\Controllers\Admin\StudentController::class, 'index'])->name('students.index');
-        Route::post('students',           [\App\Http\Controllers\Admin\StudentController::class, 'store'])->name('students.store');
-        Route::get('students/import',     [\App\Http\Controllers\Admin\StudentController::class, 'importForm'])->name('students.import');
-        Route::post('students/import',    [\App\Http\Controllers\Admin\StudentController::class, 'import'])->name('students.import.store');
+        Route::get('students',                     [\App\Http\Controllers\Admin\StudentController::class, 'index'])->name('students.index');
+        Route::post('students',                    [\App\Http\Controllers\Admin\StudentController::class, 'store'])->name('students.store');
+        Route::get('students/import',              [\App\Http\Controllers\Admin\StudentController::class, 'importForm'])->name('students.import');
+        Route::post('students/import',             [\App\Http\Controllers\Admin\StudentController::class, 'import'])->name('students.import.store');
+        Route::get('students/import/template',     [\App\Http\Controllers\Admin\StudentController::class, 'downloadTemplate'])->name('students.template');
+        // Cascading dropdown JSON feeds (FR-0014)
+        Route::get('students/departments-by-college', [\App\Http\Controllers\Admin\StudentController::class, 'departmentsByCollege'])->name('students.departments-by-college');
+        Route::get('students/programs-by-department', [\App\Http\Controllers\Admin\StudentController::class, 'programsByDepartment'])->name('students.programs-by-department');
+
+        // Import logs (A4 — queued Excel import via StudentImportController)
+        Route::get('imports',                                    [\App\Http\Controllers\Admin\StudentImportController::class, 'index'])->name('imports.index');
+        Route::post('imports',                                   [\App\Http\Controllers\Admin\StudentImportController::class, 'store'])->name('imports.store');
+        Route::get('imports/template',                           [\App\Http\Controllers\Admin\StudentImportController::class, 'downloadTemplate'])->name('imports.template');
+        Route::get('imports/{importLog}/failure-report',         [\App\Http\Controllers\Admin\StudentImportController::class, 'downloadFailureReport'])->name('imports.failure-report');
+        Route::get('imports/{importLog}/status',                 [\App\Http\Controllers\Admin\StudentImportController::class, 'status'])->name('imports.status');
 
         // Users
         Route::resource('users',          \App\Http\Controllers\Admin\UserController::class)->except(['show']);
 
         // Audit logs (read-only)
-        Route::get('audit-logs',          [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('audit-logs.index');
+        Route::get('audit-logs',              [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('audit-logs.index');
+        Route::get('audit-logs/{auditLog}',   [\App\Http\Controllers\Admin\AuditLogController::class, 'show'])->name('audit-logs.show');
+
+        // Backup trigger (B5)
+        Route::post('backup/trigger', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'triggerBackup'])->name('backup.trigger');
     });
 
-// ── Org (COLLEGE_COUNCIL / DEPT_SOCIETY) ─────────────────────────────────────
+// ── Org (COLLEGE_COUNCIL / CLASS_ORG) ────────────────────────────────────────
 Route::prefix('org')
     ->middleware(['auth', 'session.timeout', 'org.scope'])
     ->name('org.')
@@ -75,12 +94,23 @@ Route::prefix('org')
         // Transactions (POS)
         Route::get('transactions',                   [\App\Http\Controllers\Org\TransactionController::class, 'index'])->middleware('role:TREASURER,AUDITOR')->name('transactions.index');
         Route::get('transactions/create',            [\App\Http\Controllers\Org\TransactionController::class, 'create'])->middleware('role:TREASURER,COLLECTOR')->name('transactions.create');
-        Route::post('transactions/search',           [\App\Http\Controllers\Org\TransactionController::class, 'search'])->middleware('role:TREASURER,COLLECTOR')->name('transactions.search');
-        Route::post('transactions',                  [\App\Http\Controllers\Org\TransactionController::class, 'store'])->middleware('role:TREASURER,COLLECTOR')->name('transactions.store');
+        Route::post('transactions/search',           [\App\Http\Controllers\Org\TransactionController::class, 'search'])->middleware(['role:TREASURER,COLLECTOR', 'throttle:pos'])->name('transactions.search');
+        Route::post('transactions',                  [\App\Http\Controllers\Org\TransactionController::class, 'store'])->middleware(['role:TREASURER,COLLECTOR', 'throttle:pos'])->name('transactions.store');
         Route::get('transactions/{transaction}',         [\App\Http\Controllers\Org\TransactionController::class, 'show'])->middleware('role:TREASURER,COLLECTOR,AUDITOR')->name('transactions.show');
         Route::get('transactions/{transaction}/receipt', [\App\Http\Controllers\Org\TransactionController::class, 'receipt'])->middleware('role:TREASURER,COLLECTOR,AUDITOR')->name('transactions.receipt');
         // Fine payment transaction (separate from FEE flow to avoid validation mismatch)
-        Route::post('transactions/fine',                 [\App\Http\Controllers\Org\TransactionController::class, 'storeFine'])->middleware('role:TREASURER,COLLECTOR')->name('transactions.fine');
+        Route::post('transactions/fine',                 [\App\Http\Controllers\Org\TransactionController::class, 'storeFine'])->middleware(['role:TREASURER,COLLECTOR', 'throttle:pos'])->name('transactions.fine');
+
+        // Fine Collection Window
+        Route::get('fine-collection', [\App\Http\Controllers\Org\FineCollectionWindowController::class, 'index'])
+            ->middleware('role:TREASURER,AUDITOR,CHAIRPERSON')
+            ->name('fine-windows.index');
+        Route::patch('fine-collection/open', [\App\Http\Controllers\Org\FineCollectionWindowController::class, 'open'])
+            ->middleware('role:TREASURER')
+            ->name('fine-windows.open');
+        Route::patch('fine-collection/close', [\App\Http\Controllers\Org\FineCollectionWindowController::class, 'close'])
+            ->middleware('role:TREASURER')
+            ->name('fine-windows.close');
 
         // Void Requests
         Route::get('void-requests',                              [\App\Http\Controllers\Org\VoidRequestController::class, 'index'])->middleware('role:CHAIRPERSON,TREASURER,COLLECTOR,AUDITOR')->name('void-requests.index');
@@ -118,6 +148,9 @@ Route::prefix('org')
         Route::get('events/{event}/attendance', [\App\Http\Controllers\Org\AttendanceController::class, 'sheet'])
             ->middleware('role:CHAIRPERSON,AUDITOR,SECRETARY')
             ->name('attendance.sheet');
+        Route::post('events/{event}/attendance/save-draft', [\App\Http\Controllers\Org\AttendanceController::class, 'saveDraft'])
+            ->middleware('role:SECRETARY')
+            ->name('attendance.save-draft');
         Route::post('events/{event}/attendance/submit', [\App\Http\Controllers\Org\AttendanceController::class, 'submit'])
             ->middleware('role:SECRETARY')
             ->name('attendance.submit');
@@ -163,6 +196,13 @@ Route::prefix('org')
         Route::get('reports',            [\App\Http\Controllers\Org\ReportController::class, 'index'])->name('reports.index');
         Route::get('reports/pdf',        [\App\Http\Controllers\Org\ReportController::class, 'exportPdf'])->name('reports.pdf');
         Route::get('reports/csv',        [\App\Http\Controllers\Org\ReportController::class, 'exportCsv'])->name('reports.csv');
+        // [AI Narrator] AI Narrator export
+        Route::post('reports/ai-report', [ReportController::class, 'exportAiReport'])
+             ->name('reports.ai.export'); // [AI Narrator]
+
+        // [AI Narrator] AI ask endpoint
+        Route::post('ai/ask', [DashboardController::class, 'askAi'])
+             ->name('ai.ask'); // [AI Narrator]
         Route::get('documentation',       fn() => view('org.documentation'))->name('documentation');
 
         // Audit logs (org-scoped, read-only)

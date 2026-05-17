@@ -53,6 +53,7 @@
                             <option value="TREASURER" {{ old('role', $user->role) === 'TREASURER' ? 'selected' : '' }}>Treasurer</option>
                             <option value="COLLECTOR" {{ old('role', $user->role) === 'COLLECTOR' ? 'selected' : '' }}>Collector</option>
                             <option value="AUDITOR" {{ old('role', $user->role) === 'AUDITOR' ? 'selected' : '' }}>Auditor</option>
+                            <option value="SECRETARY" {{ old('role', $user->role) === 'SECRETARY' ? 'selected' : '' }}>Secretary</option>
                         </select>
                     </div>
 

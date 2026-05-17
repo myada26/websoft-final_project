@@ -2,16 +2,19 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory; // [Lab 7]
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Student extends Model
 {
+    use HasFactory; // [Lab 7]
     protected $fillable = [
         'student_number',
         'first_name',
         'last_name',
+        'name_extension',
         'middle_name',
         'email',
         'created_source',
@@ -60,8 +63,9 @@ class Student extends Model
 
     public function getFullNameAttribute(): string
     {
+        $ext    = $this->name_extension ? " {$this->name_extension}" : '';
         $middle = $this->middle_name ? " {$this->middle_name[0]}." : '';
-        return "{$this->last_name}, {$this->first_name}{$middle}";
+        return "{$this->last_name}{$ext}, {$this->first_name}{$middle}";
     }
 
     public function enrollmentFor(int $academicYearId): ?StudentEnrollment
@@ -103,8 +107,8 @@ class Student extends Model
             $query->where('type', 'COLLEGE_COUNCIL')
                 ->where('linked_college_id', $college->id);
         })->orWhere(function ($query) use ($department) {
-            // Member of Department Society (DEPT_SOCIETY linked to student's department)
-            $query->where('type', 'DEPT_SOCIETY')
+            // Member of Class Organization (CLASS_ORG linked to student's department)
+            $query->where('type', 'CLASS_ORG')
                 ->where('linked_department_id', $department->id);
         })->where('is_active', true)->get();
     }
