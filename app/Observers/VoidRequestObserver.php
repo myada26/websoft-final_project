@@ -1,10 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Observers;
 
 use App\Models\AuditLog;
+use App\Models\Transaction;
+use App\Models\User;
 use App\Models\VoidRequest;
+use App\Notifications\VoidRequestResolvedNotification;
+use App\Notifications\VoidRequestSubmittedNotification;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 class VoidRequestObserver
 {
@@ -22,6 +30,11 @@ class VoidRequestObserver
             'ip_address' => request()?->ip(),
             'timestamp'  => now(),
         ]);
+
+        $approvers = $this->approversForOrg($voidRequest);
+        if ($approvers->isNotEmpty()) {
+            Notification::send($approvers, new VoidRequestSubmittedNotification($voidRequest->id));
+        }
     }
 
     public function updated(VoidRequest $voidRequest): void
@@ -52,5 +65,24 @@ class VoidRequestObserver
             'ip_address' => request()?->ip(),
             'timestamp'  => now(),
         ]);
+
+        $requester = User::find($voidRequest->requested_by_user_id);
+        if ($requester) {
+            $requester->notify(new VoidRequestResolvedNotification($voidRequest->id));
+        }
+    }
+
+    private function approversForOrg(VoidRequest $voidRequest): Collection
+    {
+        $orgId = Transaction::whereKey($voidRequest->transaction_id)->value('organization_id');
+
+        if (! $orgId) {
+            return collect();
+        }
+
+        return User::where('organization_id', $orgId)
+            ->where('role', 'CHAIRPERSON')
+            ->where('is_active', true)
+            ->get();
     }
 }

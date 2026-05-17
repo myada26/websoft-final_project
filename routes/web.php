@@ -1,10 +1,18 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Org\DashboardController; // [AI Narrator]
 use App\Http\Controllers\Org\ReportController; // [AI Narrator]
 use App\Http\Controllers\PublicAccountabilityController;
 use Illuminate\Support\Facades\Route;
+
+Route::middleware(['auth'])->prefix('notifications')->name('notifications.')->group(function () {
+    Route::get('/',                  [NotificationController::class, 'index'])->name('index');
+    Route::post('{id}/read',         [NotificationController::class, 'markAsRead'])->name('read');
+    Route::post('read-all',          [NotificationController::class, 'markAllAsRead'])->name('read-all');
+    Route::delete('{id}',            [NotificationController::class, 'destroy'])->name('destroy');
+});
 
 // ── Public ────────────────────────────────────────────────────────────────────
 Route::get('/', fn() => redirect()->route('login'));

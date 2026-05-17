@@ -30,6 +30,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
+        if (config('app.debug')) {
+            \DB::listen(function ($query) {
+                if ($query->time > 0) {
+                    \Log::warning('SLOW QUERY | TIME: ' . $query->time . 'ms | SQL: ' . $query->sql);
+                }
+            });
+        }
         Transaction::observe(TransactionObserver::class); // [Lab 7]
         FeeProfile::observe(FeeProfileObserver::class);   // [Lab 7]
         Remittance::observe(RemittanceObserver::class);   // [Lab 7]

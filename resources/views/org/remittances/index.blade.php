@@ -63,8 +63,8 @@
                     <tr style="border-bottom:1px solid #eaf0ec" onmouseover="this.style.background='#f8fbf9'" onmouseout="this.style.background=''">
                         <td style="padding:10px 13px"><span style="font-family:monospace;font-size:12px;color:#1a7a41;font-weight:700;background:#e6f4ec;padding:2px 6px;border-radius:4px">#{{ str_pad($remit->id, 4, '0', STR_PAD_LEFT) }}</span></td>
                         <td style="padding:10px 13px;font-size:13px;color:#4a6356">{{ $remit->academicYear?->name }}</td>
-                        <td style="padding:10px 13px;font-size:13px;font-weight:600">{{ $remit->transactions()->count() }}</td>
-                        <td style="padding:10px 13px;font-size:13px;font-weight:600">₱{{ number_format($remit->transactions()->sum('amount_paid'), 2) }}</td>
+                        <td style="padding:10px 13px;font-size:13px;font-weight:600">{{ $remit->transactions->count() }}</td>
+                        <td style="padding:10px 13px;font-size:13px;font-weight:600">₱{{ number_format($remit->transactions->sum('amount_paid'), 2) }}</td>
                         <td style="padding:10px 13px">
                             {{-- 3-step timeline indicator --}}
                             <div style="display:flex;align-items:center;gap:0">

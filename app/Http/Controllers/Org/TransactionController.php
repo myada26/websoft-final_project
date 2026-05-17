@@ -170,8 +170,8 @@ class TransactionController extends Controller
             'timestamp'  => now(),
         ]);
 
-        // Send email receipt (FR-0031)
-        app(\App\Services\ReceiptEmailService::class)->send($transaction);
+        // Send email receipt (FR-0031) — queued so transaction response isn't blocked on SMTP
+        \App\Jobs\SendReceiptEmailJob::dispatch($transaction->id);
 
         return redirect()->route('org.transactions.show', $transaction)->with('success', 'Transaction recorded.');
     }
@@ -276,8 +276,8 @@ class TransactionController extends Controller
             'timestamp'  => now(),
         ]);
 
-        // Send email receipt (FR-0031)
-        app(\App\Services\ReceiptEmailService::class)->send($transaction);
+        // Send email receipt (FR-0031) — queued so transaction response isn't blocked on SMTP
+        \App\Jobs\SendReceiptEmailJob::dispatch($transaction->id);
 
         return redirect()->route('org.transactions.show', $transaction)->with('success', 'Fine payment recorded.');
     }

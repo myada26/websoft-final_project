@@ -14,26 +14,31 @@ class AcademicYear extends Model
     public const ACTIVE_CACHE_KEY = 'active_academic_year';
     public const ACTIVE_CACHE_TTL = 600;
 
-    /**
-     * [perf] Cached lookup of the active academic year. Replaces hot-path
-     * `AcademicYear::where('is_active', true)->first()` calls scattered through
-     * controllers — these previously fired a fresh query per request against
-     * remote Supabase (Tokyo), costing ~80-150ms each.
-     */
+    // [perf] Per-request memoization — file cache occasionally returns
+    // __PHP_Incomplete_Class on Windows, forcing a DB refetch. This static
+    // makes repeat calls within the same request free regardless of cache state.
+    protected static ?self $requestCache = null;
+    protected static bool $requestCacheResolved = false;
+
     public static function getActive(): ?self
     {
+        if (self::$requestCacheResolved) {
+            return self::$requestCache;
+        }
+
         $cached = Cache::get(self::ACTIVE_CACHE_KEY);
 
-        // [perf] Defensive: a cached value that isn't a real AcademicYear instance
-        // (e.g. __PHP_Incomplete_Class from a stale entry written under a different
-        // cache driver, or null sentinel) means we must refetch from the DB.
         if ($cached instanceof self) {
+            self::$requestCache = $cached;
+            self::$requestCacheResolved = true;
             return $cached;
         }
 
         $fresh = static::where('is_active', true)->first();
         Cache::put(self::ACTIVE_CACHE_KEY, $fresh, self::ACTIVE_CACHE_TTL);
 
+        self::$requestCache = $fresh;
+        self::$requestCacheResolved = true;
         return $fresh;
     }
 
@@ -74,8 +79,16 @@ class AcademicYear extends Model
         // [perf] Any write to academic_years can change "which row is active",
         // so flush the shared cache here too — belt + suspenders alongside the
         // explicit Cache::forget() calls in the controller.
-        static::saved(fn () => Cache::forget(self::ACTIVE_CACHE_KEY));
-        static::deleted(fn () => Cache::forget(self::ACTIVE_CACHE_KEY));
+        static::saved(function () {
+            Cache::forget(self::ACTIVE_CACHE_KEY);
+            self::$requestCache = null;
+            self::$requestCacheResolved = false;
+        });
+        static::deleted(function () {
+            Cache::forget(self::ACTIVE_CACHE_KEY);
+            self::$requestCache = null;
+            self::$requestCacheResolved = false;
+        });
     }
 
     // ── Scopes ────────────────────────────────────────────────────────────

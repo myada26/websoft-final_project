@@ -15,7 +15,7 @@ class RemittanceController extends Controller
     {
         $orgId = auth()->user()->organization_id;
         $remittances = Remittance::where('organization_id', $orgId)
-            ->with('academicYear')
+            ->with(['academicYear', 'transactions:id,remittance_id,amount_paid'])
             ->orderByDesc('created_at')
             ->paginate(15);
 
@@ -26,9 +26,9 @@ class RemittanceController extends Controller
             ->groupBy('status')
             ->pluck('cnt', 'status');
 
-        $amounts = Transaction::where('organization_id', $orgId)
-            ->where('is_void', false)
-            ->whereNotNull('remittance_id')
+        $amounts = Transaction::where('transactions.organization_id', $orgId)
+            ->where('transactions.is_void', false)
+            ->whereNotNull('transactions.remittance_id')
             ->join('remittances', 'transactions.remittance_id', '=', 'remittances.id')
             ->whereIn('remittances.status', ['PENDING', 'VERIFIED', 'ACCEPTED'])
             ->select('remittances.status', DB::raw('SUM(transactions.amount_paid) as total'))

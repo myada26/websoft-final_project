@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Observers;
 
 use App\Models\AuditLog;
 use App\Models\Remittance;
+use App\Models\User;
+use App\Notifications\RemittanceSubmittedNotification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 class RemittanceObserver
 {
@@ -23,6 +28,15 @@ class RemittanceObserver
             'ip_address' => request()?->ip(),
             'timestamp'  => now(),
         ]);
+
+        $reviewers = User::where('organization_id', $remittance->organization_id)
+            ->where('role', 'AUDITOR')
+            ->where('is_active', true)
+            ->get();
+
+        if ($reviewers->isNotEmpty()) {
+            Notification::send($reviewers, new RemittanceSubmittedNotification($remittance->id));
+        }
     }
 
     public function updated(Remittance $remittance): void

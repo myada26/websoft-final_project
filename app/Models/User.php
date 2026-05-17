@@ -6,9 +6,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    use Notifiable;
+
     // Explicit PK declarations — prevents Eloquent from relying on default inference,
     // which can return a string when the DB driver doesn't cast bigint columns.
     protected $primaryKey  = 'id';

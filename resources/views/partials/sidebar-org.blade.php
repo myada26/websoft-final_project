@@ -1,4 +1,4 @@
-<aside class="w-[260px] min-h-screen bg-green-900 flex flex-col shrink-0 shadow-xl z-20">
+<aside class="h-full w-[260px] min-h-screen bg-green-900 flex flex-col shrink-0 shadow-xl z-20" x-data="{ showLogoutConfirm: false }">
     <div class="px-6 py-5 flex items-center gap-3.5 border-b border-white/10 shrink-0">
         <div class="w-9 h-9 bg-gold-500 rounded-lg flex items-center justify-center shrink-0 shadow-inner">
             @include('partials.ui-icon', ['name' => 'layers', 'class' => 'w-5 h-5 text-green-900'])
@@ -73,12 +73,36 @@
                 <div class="text-[13.5px] font-bold text-white truncate">{{ auth()->user()->username ?? 'Juan dela Cruz' }}</div>
                 <div class="text-[11px] text-[#b7dfc7] font-medium truncate">{{ auth()->user()->role ?? 'Chairperson' }}</div>
             </div>
-            <form method="POST" action="{{ route('logout') }}">
+            <form method="POST" action="{{ route('logout') }}" x-ref="logoutForm">
                 @csrf
-                <button type="submit" title="Sign Out" class="p-1.5 rounded-lg text-white/50 hover:bg-white/5 hover:text-white transition-colors">
+                <button type="button" @click="showLogoutConfirm = true" title="Sign Out" class="p-1.5 rounded-lg text-white/50 hover:bg-white/5 hover:text-white transition-colors">
                     @include('partials.ui-icon', ['name' => 'logout', 'class' => 'w-4 h-4'])
                 </button>
             </form>
+        </div>
+    </div>
+
+    <div x-show="showLogoutConfirm" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" @click="showLogoutConfirm = false"></div>
+        <div x-show="showLogoutConfirm"
+             x-transition
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="logout-modal-title-org"
+             class="relative w-full max-w-sm rounded-xl border border-[#dde8e1] bg-white shadow-2xl">
+            <div class="flex items-start gap-3 border-b border-[#eaf0ec] px-5 py-4">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600">
+                    @include('partials.ui-icon', ['name' => 'logout', 'class' => 'w-5 h-5'])
+                </div>
+                <div class="min-w-0">
+                    <h2 id="logout-modal-title-org" class="text-[15px] font-bold text-[#0f1f17]">Sign out?</h2>
+                    <p class="mt-1 text-[13px] leading-relaxed text-[#4a6356]">Are you sure you want to sign out of FCATS?</p>
+                </div>
+            </div>
+            <div class="flex flex-col-reverse gap-2 px-5 py-4 sm:flex-row sm:justify-end">
+                <button type="button" @click="showLogoutConfirm = false" class="btn-ghost">Cancel</button>
+                <button type="button" @click="$refs.logoutForm.submit()" class="btn-danger">Yes, Sign Out</button>
+            </div>
         </div>
     </div>
 </aside>

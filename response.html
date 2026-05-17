@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="KR3bEtvvlIzecKLZshA9LnaSb3jDbnqlRLfPyXEO">
+    <title>Sign In — FCATS</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23166534'/><path d='M50 20 L72 32 L72 56 C72 70 62 80 50 84 C38 80 28 70 28 56 L28 32 Z' fill='%234ade80' opacity='0.9'/><rect x='42' y='44' width='16' height='22' rx='3' fill='%23166534'/><circle cx='50' cy='38' r='8' fill='none' stroke='%23166534' stroke-width='4'/></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preload" as="style" href="http://127.0.0.1:8000/build/assets/app-D1gmlXMi.css" /><link rel="modulepreload" as="script" href="http://127.0.0.1:8000/build/assets/app-Bfo9AgpE.js" /><link rel="stylesheet" href="http://127.0.0.1:8000/build/assets/app-D1gmlXMi.css" data-navigate-track="reload" /><script type="module" src="http://127.0.0.1:8000/build/assets/app-Bfo9AgpE.js" data-navigate-track="reload"></script>    <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+        --green-400:    #4ade80;
+        --green-500:    #22c55e;
+        --green-600:    #16a34a;
+        --green-700:    #15803d;
+        --text-main:    #111827;
+        --text-sub:     #6b7280;
+        --text-ghost:   #9ca3af;
+        --error:        #b42318;
+        --error-bg:     #fef3f2;
+        --error-border: #fecdca;
+        --radius-modal: 2.5rem;
+        --radius-input: 1rem;
+        --radius-btn:   1rem;
+    }
+
+    html, body { width: 100%; min-height: 100vh; }
+    body { font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+
+    /* ── Background shell ── */
+    .gl-shell {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        overflow: hidden;
+        background: #f0f7f2;
+    }
+
+    /* Background image — full cover */
+    .gl-bg-img {
+        position: absolute;
+        inset: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        pointer-events: none;
+    }
+
+    /* Subtle white-wash overlay (no blur) */
+    .gl-blur-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(255,255,255,0.08);
+        pointer-events: none;
+    }
+
+    /* Atmospheric light leaks (mix-blend-overlay) */
+    .gl-light-leak {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+        mix-blend-mode: overlay;
+    }
+    .gl-light-leak-1 {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%) rotate(-34deg);
+        width: 1100px; height: 260px;
+        background: rgba(255,255,255,0.55);
+        filter: blur(55px);
+        border-radius: 999px;
+    }
+    .gl-light-leak-2 {
+        position: absolute;
+        top: 5%; left: -10%;
+        width: 700px; height: 180px;
+        background: rgba(187,247,208,0.28);
+        filter: blur(75px);
+        border-radius: 999px;
+        transform: rotate(-45deg);
+    }
+
+    /* ── Modal wrapper ── */
+    .gl-wrap {
+        position: relative;
+        width: 100%;
+        max-width: 430px;
+        animation: fadeInUp .65s cubic-bezier(.16,1,.3,1) both;
+        z-index: 10;
+    }
+
+    /* Glass surface */
+    .gl-modal {
+        position: relative;
+        background: linear-gradient(165deg, rgba(255,255,255,0.72), rgba(255,255,255,0.50));
+        backdrop-filter: blur(28px) saturate(1.3);
+        -webkit-backdrop-filter: blur(28px) saturate(1.3);
+        border-radius: var(--radius-modal);
+        border: 1.5px solid rgba(255,255,255,0.68);
+        box-shadow:
+            0 20px 60px -15px rgba(34,197,94,0.14),
+            0 8px 30px -8px rgba(0,0,0,0.07),
+            0 2px 8px rgba(0,0,0,0.04),
+            inset 0 1px 0 rgba(255,255,255,0.90);
+        padding: 44px 40px 40px;
+        overflow: hidden;
+    }
+
+    /* Ambient green glow top-center */
+    .gl-modal::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 50%;
+        transform: translateX(-50%);
+        width: 150%; height: 140px;
+        background: linear-gradient(to bottom, rgba(74,222,128,0.08), transparent);
+        pointer-events: none;
+    }
+
+    /* Top shimmer line */
+    .gl-modal::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.90), transparent);
+        pointer-events: none;
+    }
+
+    /* ── Header ── */
+    .gl-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+
+    .gl-logo {
+        width: 56px; height: 56px;
+        border-radius: 1rem;
+        background: linear-gradient(135deg, var(--green-400), var(--green-600));
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 8px 24px rgba(34,197,94,0.35), 0 0 0 4px rgba(255,255,255,0.65);
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    .gl-title { text-align: center; }
+    .gl-title h1 {
+        font-size: 27px;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+        line-height: 1.25;
+        color: var(--text-main);
+    }
+    .gl-title p {
+        margin-top: 8px;
+        font-size: 14px;
+        font-weight: 400;
+        color: var(--text-sub);
+        line-height: 1.5;
+    }
+
+    /* ── Alert ── */
+    .gl-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 14px;
+        background: var(--error-bg);
+        border: 1px solid var(--error-border);
+        border-radius: 12px;
+        margin-bottom: 20px;
+        color: var(--error);
+        font-size: 13px;
+        font-weight: 500;
+    }
+    .gl-alert svg { flex-shrink: 0; margin-top: 1px; }
+
+    /* ── Form fields ── */
+    .gl-fields { display: flex; flex-direction: column; gap: 18px; }
+
+    .gl-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.01em;
+        color: #374151;
+        margin-bottom: 7px;
+        padding-left: 2px;
+    }
+
+    .gl-input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: rgba(255,255,255,0.40);
+        border: 1.5px solid rgba(255,255,255,0.60);
+        border-radius: var(--radius-input);
+        transition: background .25s, border-color .25s, box-shadow .25s;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .gl-input-wrap:focus-within {
+        background: rgba(255,255,255,0.68);
+        border-color: rgba(74,222,128,0.55);
+        box-shadow: 0 0 0 3px rgba(74,222,128,0.14), 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .gl-input-wrap:hover:not(:focus-within) {
+        background: rgba(255,255,255,0.52);
+    }
+    .gl-input-wrap.has-error {
+        border-color: #f97066;
+        background: var(--error-bg);
+    }
+
+    .gl-input-icon {
+        display: flex;
+        align-items: center;
+        padding-left: 14px;
+        color: var(--text-ghost);
+        flex-shrink: 0;
+        transition: color .2s;
+    }
+    .gl-input-wrap:focus-within .gl-input-icon { color: var(--green-500); }
+
+    .gl-input-wrap input {
+        flex: 1;
+        border: 0;
+        outline: none;
+        background: transparent;
+        padding: 14px 14px;
+        font-family: inherit;
+        font-size: 14.5px;
+        font-weight: 400;
+        color: var(--text-main);
+        letter-spacing: 0.01em;
+        min-width: 0;
+    }
+    .gl-input-wrap input::placeholder {
+        color: var(--text-ghost);
+        font-weight: 300;
+    }
+
+    .gl-pw-toggle {
+        border: 0;
+        background: transparent;
+        padding: 0 14px;
+        color: var(--text-ghost);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        transition: color .2s;
+        flex-shrink: 0;
+    }
+    .gl-pw-toggle:hover { color: var(--text-main); }
+
+    .gl-field-error {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--error);
+        font-weight: 500;
+    }
+
+    /* ── Remember row ── */
+    .gl-remember {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 10px 0 22px;
+        cursor: pointer;
+        user-select: none;
+    }
+    .gl-remember input[type="checkbox"] {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+    .gl-check {
+        width: 20px; height: 20px;
+        border-radius: 6px;
+        border: 2px solid rgba(156,163,175,0.70);
+        background: rgba(255,255,255,0.50);
+        display: flex; align-items: center; justify-content: center;
+        transition: all .2s cubic-bezier(.4,0,.2,1);
+        flex-shrink: 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .gl-remember input:checked ~ .gl-check {
+        background: var(--green-500);
+        border-color: transparent;
+        box-shadow: 0 2px 8px rgba(34,197,94,0.32);
+    }
+    .gl-check-icon { opacity: 0; transition: opacity .15s; }
+    .gl-remember input:checked ~ .gl-check .gl-check-icon { opacity: 1; }
+    .gl-remember-lbl {
+        font-size: 13.5px;
+        font-weight: 400;
+        color: var(--text-sub);
+    }
+
+    /* ── Submit button ── */
+    .gl-submit {
+        width: 100%;
+        padding: 14px 24px;
+        border: 0;
+        border-radius: var(--radius-btn);
+        background: linear-gradient(135deg, var(--green-500), var(--green-600));
+        color: #fff;
+        font-family: inherit;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 8px 20px -6px rgba(34,197,94,0.50);
+        transition: transform .2s, box-shadow .2s, background .2s;
+    }
+    .gl-submit:hover {
+        background: linear-gradient(135deg, var(--green-600), var(--green-700));
+        transform: translateY(-1px);
+        box-shadow: 0 10px 28px -6px rgba(34,197,94,0.58), 0 2px 8px rgba(34,197,94,0.22);
+    }
+    .gl-submit:active { transform: translateY(0); }
+
+    /* ── Portal link at bottom ── */
+    .gl-portal-link {
+        margin-top: 22px;
+        text-align: center;
+        font-size: 13.5px;
+        color: var(--text-sub);
+    }
+    .gl-portal-link button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--green-600);
+        padding: 0;
+        transition: color .2s;
+    }
+    .gl-portal-link button:hover { color: var(--green-700); }
+
+    /* ── Panel switching ── */
+    .gl-portal-panel { display: none; }
+    .gl-portal-panel.is-open { display: block; }
+    .gl-login-panel { display: block; }
+    .gl-login-panel.is-hidden { display: none; }
+
+    /* ── Divider ── */
+    .gl-divider {
+        position: relative;
+        margin: 20px 0;
+    }
+    .gl-divider::before {
+        content: '';
+        position: absolute;
+        inset: 50% 0 auto;
+        height: 1px;
+        background: rgba(0,0,0,0.08);
+    }
+    .gl-divider span {
+        position: relative;
+        display: block;
+        text-align: center;
+        font-size: 12.5px;
+        color: var(--text-ghost);
+        background: transparent;
+        padding: 0 12px;
+        width: fit-content;
+        margin: 0 auto;
+        background: transparent;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px) scale(0.98); }
+        to   { opacity: 1; transform: translateY(0)   scale(1);    }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+        .gl-modal { padding: 36px 24px 32px; }
+        .gl-title h1 { font-size: 23px; }
+    }
+</style>
+    <!-- Livewire Styles --><style >[wire\:loading][wire\:loading], [wire\:loading\.delay][wire\:loading\.delay], [wire\:loading\.list-item][wire\:loading\.list-item], [wire\:loading\.inline-block][wire\:loading\.inline-block], [wire\:loading\.inline][wire\:loading\.inline], [wire\:loading\.block][wire\:loading\.block], [wire\:loading\.flex][wire\:loading\.flex], [wire\:loading\.table][wire\:loading\.table], [wire\:loading\.grid][wire\:loading\.grid], [wire\:loading\.inline-flex][wire\:loading\.inline-flex] {display: none;}[wire\:loading\.delay\.none][wire\:loading\.delay\.none], [wire\:loading\.delay\.shortest][wire\:loading\.delay\.shortest], [wire\:loading\.delay\.shorter][wire\:loading\.delay\.shorter], [wire\:loading\.delay\.short][wire\:loading\.delay\.short], [wire\:loading\.delay\.default][wire\:loading\.delay\.default], [wire\:loading\.delay\.long][wire\:loading\.delay\.long], [wire\:loading\.delay\.longer][wire\:loading\.delay\.longer], [wire\:loading\.delay\.longest][wire\:loading\.delay\.longest] {display: none;}[wire\:offline][wire\:offline] {display: none;}[wire\:dirty]:not(textarea):not(input):not(select) {display: none;}:root {--livewire-progress-bar-color: #2299dd;}[x-cloak] {display: none !important;}[wire\:cloak] {display: none !important;}dialog#livewire-error::backdrop {background-color: rgba(0, 0, 0, .6);}</style>
+</head>
+
+<body style="margin:0;font-family:'Outfit',ui-sans-serif,system-ui,sans-serif;background:#f0f3f1;color:#0f1f17">
+    <div class="gl-shell">
+
+    
+    <img src="http://127.0.0.1:8000/img/auth-bg.png" alt="" class="gl-bg-img" aria-hidden="true">
+    <div class="gl-blur-overlay" aria-hidden="true"></div>
+    <div class="gl-light-leak" aria-hidden="true">
+        <div class="gl-light-leak-1"></div>
+        <div class="gl-light-leak-2"></div>
+    </div>
+
+    
+    <div class="gl-wrap">
+        <div class="gl-modal">
+
+            
+            <div class="gl-header">
+                <div class="gl-logo">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <div class="gl-title">
+                    <h1 id="gl-heading">Welcome Back</h1>
+                    <p  id="gl-sub">Sign in to continue to FCATS</p>
+                </div>
+            </div>
+
+            
+            <div class="gl-login-panel" id="gl-login">
+
+                
+                
+                <form method="POST" action="http://127.0.0.1:8000/login" novalidate>
+                    <input type="hidden" name="_token" value="KR3bEtvvlIzecKLZshA9LnaSb3jDbnqlRLfPyXEO" autocomplete="off">
+                    <div class="gl-fields">
+
+                        
+                        <div class="gl-field">
+                            <label class="gl-label" for="username">Username</label>
+                            <div class="gl-input-wrap ">
+                                <span class="gl-input-icon" aria-hidden="true">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="9" cy="7" r="4"/>
+                                        <path d="M22 11h-6M19 8v6"/>
+                                    </svg>
+                                </span>
+                                <input
+                                    type="text"
+                                    id="username"
+                                    name="username"
+                                    value=""
+                                    placeholder="e.g. 2024-000001-IT"
+                                    autocomplete="username"
+                                    autofocus>
+                            </div>
+                                                    </div>
+
+                        
+                        <div class="gl-field">
+                            <label class="gl-label" for="password">Password</label>
+                            <div class="gl-input-wrap ">
+                                <span class="gl-input-icon" aria-hidden="true">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="11" width="18" height="11" rx="2"/>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                    </svg>
+                                </span>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    placeholder="Enter your password"
+                                    autocomplete="current-password">
+                                <button type="button" class="gl-pw-toggle" id="gl-pw-btn" aria-label="Show password">
+                                    <svg id="gl-eye-show" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                    <svg id="gl-eye-hide" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                                        <line x1="1" y1="1" x2="23" y2="23"/>
+                                    </svg>
+                                </button>
+                            </div>
+                                                    </div>
+
+                    </div>
+
+                    
+                    <label class="gl-remember">
+                        <input type="checkbox" name="remember" value="1"  id="gl-remember-cb">
+                        <span class="gl-check" aria-hidden="true">
+                            <svg class="gl-check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                <path d="M5 13l4 4L19 7" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                        <span class="gl-remember-lbl">Keep me signed in</span>
+                    </label>
+
+                    <button type="submit" class="gl-submit">
+                        <span>Sign In</span>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                        </svg>
+                    </button>
+
+                </form>
+
+                
+                <div class="gl-portal-link">
+                    Student? <button type="button" id="gl-show-portal">Check your fee status →</button>
+                </div>
+
+            </div>
+
+            
+            <div class="gl-portal-panel" id="gl-portal">
+                <div class="gl-portal-link" style="margin-top:0;margin-bottom:24px;text-align:left">
+                    <button type="button" id="gl-back-login">← Back to Sign In</button>
+                </div>
+                <div style="text-align:center;margin-bottom:18px;">
+                    <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#22c55e,#16a34a);display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                    </div>
+                    <h2 style="font-size:1.15rem;font-weight:700;color:#111827;margin:0 0 4px;">Fee Status Check</h2>
+                    <p style="font-size:.85rem;color:#6b7280;margin:0;">Enter your Student ID to view your fee balance.</p>
+                </div>
+                <form method="GET" action="http://127.0.0.1:8000/check-fees">
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block;font-size:.8rem;font-weight:600;color:#374151;margin-bottom:6px;letter-spacing:.3px;">Student ID Number</label>
+                        <input
+                            type="text"
+                            name="student_number"
+                            placeholder="e.g. 2024000001"
+                            maxlength="10"
+                            pattern="\d{10}"
+                            required
+                            style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.6);background:rgba(255,255,255,0.40);font-size:.95rem;color:#111827;outline:none;box-sizing:border-box;"
+                            onfocus="this.style.borderColor='#22c55e';this.style.boxShadow='0 0 0 3px rgba(34,197,94,.15)'"
+                            onblur="this.style.borderColor='rgba(255,255,255,0.6)';this.style.boxShadow='none'"
+                        />
+                    </div>
+                    <button type="submit" style="width:100%;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-weight:700;font-size:.95rem;cursor:pointer;box-shadow:0 4px 14px rgba(22,163,74,.35);">
+                        Check Fee Status
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function () {
+    /* Password toggle */
+    var pwInput = document.getElementById('password');
+    var pwBtn   = document.getElementById('gl-pw-btn');
+    var eyeShow = document.getElementById('gl-eye-show');
+    var eyeHide = document.getElementById('gl-eye-hide');
+
+    if (pwBtn) {
+        pwBtn.addEventListener('click', function () {
+            var isPassword = pwInput.type === 'password';
+            pwInput.type = isPassword ? 'text' : 'password';
+            eyeShow.style.display = isPassword ? 'none' : '';
+            eyeHide.style.display = isPassword ? ''     : 'none';
+            pwBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+        });
+    }
+
+    /* Checkbox visual sync */
+    var cb    = document.getElementById('gl-remember-cb');
+    var check = cb ? cb.closest('.gl-remember').querySelector('.gl-check') : null;
+    if (cb && check) {
+        function syncCheck() {
+            check.style.background  = cb.checked ? '#22c55e' : 'rgba(255,255,255,.50)';
+            check.style.borderColor = cb.checked ? 'transparent' : '';
+            check.style.boxShadow   = cb.checked ? '0 2px 8px rgba(34,197,94,.32)' : '';
+            check.querySelector('.gl-check-icon').style.opacity = cb.checked ? '1' : '0';
+        }
+        cb.addEventListener('change', syncCheck);
+        syncCheck();
+    }
+
+    /* Panel switch */
+    var loginPanel  = document.getElementById('gl-login');
+    var portalPanel = document.getElementById('gl-portal');
+    var heading     = document.getElementById('gl-heading');
+    var sub         = document.getElementById('gl-sub');
+    var showPortal  = document.getElementById('gl-show-portal');
+    var backLogin   = document.getElementById('gl-back-login');
+
+    if (showPortal) {
+        showPortal.addEventListener('click', function () {
+            loginPanel.classList.add('is-hidden');
+            portalPanel.classList.add('is-open');
+            heading.textContent = 'Fee Status Check';
+            sub.textContent     = 'Enter your student ID to view your records';
+        });
+    }
+    if (backLogin) {
+        backLogin.addEventListener('click', function () {
+            portalPanel.classList.remove('is-open');
+            loginPanel.classList.remove('is-hidden');
+            heading.textContent = 'Welcome Back';
+            sub.textContent     = 'Sign in to continue to FCATS';
+        });
+    }
+})();
+</script>
+    <!-- Livewire Scripts -->
+<script src="http://127.0.0.1:8000/livewire-17180bb2/livewire.js?id=ab6b028c"   data-csrf="KR3bEtvvlIzecKLZshA9LnaSb3jDbnqlRLfPyXEO" data-module-url="http://127.0.0.1:8000/livewire-17180bb2" data-update-uri="http://127.0.0.1:8000/livewire-17180bb2/update" data-navigate-once="true"></script>
+</body>
+
+</html>
