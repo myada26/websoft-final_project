@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class College extends Model
 {
@@ -18,6 +19,13 @@ class College extends Model
         return [
             'is_active' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        $flush = fn () => Cache::forget('dropdown_colleges');
+        static::saved($flush);
+        static::deleted($flush);
     }
 
     // ── Relationships ─────────────────────────────────────────────────────

@@ -204,6 +204,12 @@ class ReportController extends Controller
         $organization = auth()->user()->organization;
         $academicYear = AcademicYear::where('is_active', true)->firstOrFail();
 
+        $treasurer = \App\Models\User::where('organization_id', $organization->id)
+            ->where('role', 'TREASURER')
+            ->where('is_active', true)
+            ->with('student')
+            ->first();
+
         $semesterName = str_replace('2024-2025 ', '', $academicYear->name ?? 'N/A');
         $semesterLabel = ucfirst($semesterName);
 
@@ -298,6 +304,7 @@ class ReportController extends Controller
             'organization',
             'academicYear',
             'semesterLabel',
+            'treasurer',
             'totalMembers',
             'orMin',
             'orMax',

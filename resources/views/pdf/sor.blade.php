@@ -179,7 +179,7 @@
 
     {{-- Signatures --}}
     @php
-        $treasurerName = auth()->user()->student?->full_name ?? auth()->user()->username;
+        $treasurerName = $treasurer?->student?->full_name ?? $treasurer?->username ?? '— no treasurer assigned —';
     @endphp
     <table class="sig-table">
         <tr>

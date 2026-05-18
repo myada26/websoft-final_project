@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\College;
+use App\Models\Department;
 use App\Models\User;
 use App\Models\Organization;
 use Illuminate\Http\Request;
@@ -14,13 +16,22 @@ class UserController extends Controller
     {
         $users = User::with('organization')
             ->when(request('search'), fn($q, $s) => $q->where('username', 'like', "%$s%"))
-            ->when(request('organization_id'), fn($q, $o) => $q->where('organization_id', $o))
+            ->when(request('filter_college'), fn($q, $c) => $q->whereHas('organization', function ($oq) use ($c) {
+                $oq->where(function ($w) use ($c) {
+                    $w->where('linked_college_id', $c)
+                      ->orWhereHas('department', fn($dq) => $dq->where('college_id', $c));
+                });
+            }))
+            ->when(request('filter_dept'), fn($q, $d) => $q->whereHas('organization', fn($oq) => $oq->where('linked_department_id', $d)))
             ->orderBy('username')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
-        $organizations = Organization::orderBy('name')->get();
+        $organizations  = Organization::orderBy('name')->get();
+        $colleges       = College::orderBy('name')->get();
+        $allDepartments = Department::orderBy('name')->get(['id', 'name', 'college_id']);
 
-        return view('admin.users.index', compact('users', 'organizations'));
+        return view('admin.users.index', compact('users', 'organizations', 'colleges', 'allDepartments'));
     }
 
     public function create()

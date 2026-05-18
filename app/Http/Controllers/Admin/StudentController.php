@@ -12,6 +12,7 @@ use App\Models\Program;
 use App\Models\Student;
 use App\Models\StudentEnrollment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -100,12 +101,10 @@ class StudentController extends Controller
 
         $students = $students->paginate(25);
 
-        $programs  = Program::orderBy('name')->get();
-        $colleges  = College::orderBy('name')->get();
-
-        // Pre-load departments and programs as JSON for Alpine.js cascading dropdowns
-        $allDepartments = Department::orderBy('name')->get(['id', 'name', 'code', 'college_id']);
-        $allPrograms    = Program::orderBy('name')->get(['id', 'name', 'code', 'department_id']);
+        $programs       = Cache::remember('dropdown_programs',      3600, fn () => Program::orderBy('name')->get());
+        $colleges       = Cache::remember('dropdown_colleges',      3600, fn () => College::orderBy('name')->get());
+        $allDepartments = Cache::remember('dropdown_departments',   3600, fn () => Department::orderBy('name')->get(['id', 'name', 'code', 'college_id']));
+        $allPrograms    = Cache::remember('dropdown_programs_slim', 3600, fn () => Program::orderBy('name')->get(['id', 'name', 'code', 'department_id']));
 
         return view('admin.students.index', compact(
             'students', 'activeSemester', 'programs',

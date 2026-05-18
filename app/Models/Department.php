@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class Department extends Model
 {
@@ -20,6 +21,13 @@ class Department extends Model
         return [
             'is_active' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        $flush = fn () => Cache::forget('dropdown_departments');
+        static::saved($flush);
+        static::deleted($flush);
     }
 
     // ── Relationships ─────────────────────────────────────────────────────

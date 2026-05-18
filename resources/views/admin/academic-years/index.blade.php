@@ -37,9 +37,15 @@
                 </thead>
                 <tbody>
                     @forelse($academicYears as $ay)
+                    @php
+                        // Backward compatibility: older rows only have `name` populated;
+                        // newer rows split year + semester. Derive the missing parts.
+                        $yearLabel     = $ay->year ?: (preg_match('/(\d{4}-\d{4})/', (string) $ay->name, $m) ? $m[1] : '—');
+                        $semesterLabel = $ay->semester ?: trim(preg_replace('/\d{4}-\d{4}/', '', (string) $ay->name)) ?: '—';
+                    @endphp
                     <tr class="border-b border-[#eaf0ec] hover:bg-[#f0f3f1]/50 transition-colors last:border-b-0 group">
-                        <td class="px-6 py-4"><span class="font-mono text-[13px] font-bold text-green-600 bg-green-100 px-2 py-1 rounded-md">{{ $ay->year }}</span></td>
-                        <td class="px-6 py-4 text-[14px] font-bold text-green-800">{{ $ay->semester }}</td>
+                        <td class="px-6 py-4"><span class="font-mono text-[13px] font-bold text-green-600 bg-green-100 px-2 py-1 rounded-md">{{ $yearLabel }}</span></td>
+                        <td class="px-6 py-4 text-[14px] font-bold text-green-800">{{ $semesterLabel }}</td>
                         <td class="px-6 py-4 text-[13.5px] font-semibold text-green-400">{{ $ay->start_date?->format('M d, Y') ?? '—' }}</td>
                         <td class="px-6 py-4 text-[13.5px] font-semibold text-green-400">{{ $ay->end_date?->format('M d, Y') ?? '—' }}</td>
                         <td class="px-6 py-4">

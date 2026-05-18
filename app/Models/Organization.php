@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Cache;
 
 class Organization extends Model
 {
@@ -33,6 +34,9 @@ class Organization extends Model
         static::updating(function ($organization) {
             $organization->validateTypeConstraints();
         });
+
+        static::saved(fn (Organization $org) => Cache::forget("org.{$org->id}"));
+        static::deleted(fn (Organization $org) => Cache::forget("org.{$org->id}"));
     }
 
     public function validateTypeConstraints(): void

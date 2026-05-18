@@ -26,16 +26,24 @@ class AcademicYear extends Model
             return self::$requestCache;
         }
 
-        $cached = Cache::get(self::ACTIVE_CACHE_KEY);
+        // [perf] Cache the ID only — full Eloquent models corrupt to
+        // __PHP_Incomplete_Class through Windows file cache. ID lookup
+        // is fast (single PK) and round-trip-stable.
+        $cachedId = Cache::get(self::ACTIVE_CACHE_KEY);
 
-        if ($cached instanceof self) {
-            self::$requestCache = $cached;
-            self::$requestCacheResolved = true;
-            return $cached;
+        $fresh = null;
+
+        if (is_int($cachedId) || (is_string($cachedId) && ctype_digit($cachedId))) {
+            $fresh = static::find((int) $cachedId);
+            if ($fresh && ! $fresh->is_active) {
+                $fresh = null;
+            }
         }
 
-        $fresh = static::where('is_active', true)->first();
-        Cache::put(self::ACTIVE_CACHE_KEY, $fresh, self::ACTIVE_CACHE_TTL);
+        if (! $fresh) {
+            $fresh = static::where('is_active', true)->first();
+            Cache::put(self::ACTIVE_CACHE_KEY, $fresh?->id, self::ACTIVE_CACHE_TTL);
+        }
 
         self::$requestCache = $fresh;
         self::$requestCacheResolved = true;

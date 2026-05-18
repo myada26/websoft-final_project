@@ -106,7 +106,9 @@
 
                     init() {
                         this.fetch();
-                        this.pollHandle = setInterval(() => this.fetch(), 60000);
+                        // [perf] 60s setInterval removed — was contending with Windows
+                        // file-session locks and stalling Livewire requests. Bell still
+                        // refreshes when the user clicks it open (see toggle() below).
                     },
 
                     toggle() {
@@ -182,16 +184,5 @@
         </script>
         @endpush
 
-        @auth
-            <div class="flex min-w-0 items-center gap-2 border-l border-[#eaf0ec] pl-2">
-                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-600 text-[13px] font-bold text-white">
-                    {{ strtoupper(substr(auth()->user()->username ?? 'U', 0, 2)) }}
-                </div>
-                <div class="hidden min-w-0 md:block">
-                    <p class="truncate text-[13px] font-bold leading-tight text-green-800">{{ auth()->user()->username }}</p>
-                    <p class="truncate text-[11px] font-medium text-green-300">{{ auth()->user()->isAdmin() ? 'Super Administrator' : (auth()->user()->role ?? 'Org User') }}</p>
-                </div>
-            </div>
-        @endauth
     </div>
 </header>

@@ -11,7 +11,7 @@ class AuditLogController extends Controller
     {
         $logs = \App\Models\AuditLog::whereHas('user', fn($q) => $q->where('organization_id', auth()->user()->organization_id))
             ->with('user')
-            ->orderByDesc('created_at')
+            ->orderByDesc('timestamp')
             ->paginate(50);
 
         return view('org.audit-logs.index', compact('logs'));

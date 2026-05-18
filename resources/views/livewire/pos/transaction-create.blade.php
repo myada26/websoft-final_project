@@ -71,7 +71,7 @@
                             class="w-full pl-11 pr-4 py-3 border-2 border-green-200 rounded-lg bg-white text-[14px] font-medium text-green-800 outline-none focus:border-green-600 transition-colors"
                         >
                         @if($studentQuery)
-                        <button type="button" wire:click="$set('studentQuery', '')" wire:click.stop
+                        <button type="button" wire:click="clearStudentSearch"
                                 class="absolute right-3.5 top-1/2 -translate-y-1/2 text-green-300 hover:text-green-600">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>

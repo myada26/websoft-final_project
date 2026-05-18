@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class Program extends Model
 {
@@ -20,6 +21,16 @@ class Program extends Model
         return [
             'is_active' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        $flush = function () {
+            Cache::forget('dropdown_programs');
+            Cache::forget('dropdown_programs_slim');
+        };
+        static::saved($flush);
+        static::deleted($flush);
     }
 
     // ── Relationships ─────────────────────────────────────────────────────

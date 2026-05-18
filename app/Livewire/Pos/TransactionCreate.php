@@ -7,10 +7,14 @@ use App\Models\FeeProfile;
 use App\Models\Student;
 use App\Models\StudentFine;
 use App\Models\Transaction;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class TransactionCreate extends Component
 {
+    private const MIN_SEARCH_LENGTH = 2;
+    private const SEARCH_LIMIT = 8;
+
     public int $step = 1;
 
     // ── Step 1: student search ────────────────────────────────────────────
@@ -66,70 +70,122 @@ class TransactionCreate extends Component
     public function updatedStudentQuery(): void
     {
         $q = trim($this->studentQuery);
-        if (mb_strlen($q) < 2) {
+
+        // Empty-query safety: short or empty input never hits the DB.
+        if (mb_strlen($q) < self::MIN_SEARCH_LENGTH) {
             $this->searchResults = [];
             return;
         }
 
-        $activeSemester = AcademicYear::where('is_active', true)->first();
-        $org = auth()->user()->organization;
+        $activeSemester = AcademicYear::getActive();
+        $org            = auth()->user()->organization;
 
         if (! $activeSemester || ! $org) {
             $this->searchResults = [];
             return;
         }
 
-        $studentNumberQuery = preg_replace('/\D+/', '', $q);
+        $hasDigit      = preg_match('/\d/', $q) === 1;
+        $numericQuery  = preg_replace('/\D+/', '', $q) ?? '';
+        $studentPrefix = $this->likePrefix($q);
+        $numericPrefix = $numericQuery !== '' ? $this->likePrefix($numericQuery) : null;
+        $namePrefix    = $this->likePrefix($q);
+        $nameOperator  = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
 
-        $this->searchResults = Student::whereHas('enrollments', function ($enrollmentQuery) use ($activeSemester, $org) {
-                $enrollmentQuery
-                    ->where('academic_year_id', $activeSemester->id)
-                    ->whereHas('program.department', function ($departmentQuery) use ($org) {
-                        if ($org->type === 'COLLEGE_COUNCIL') {
-                            $departmentQuery->where('college_id', $org->linked_college_id);
-                        } elseif ($org->type === 'CLASS_ORG') {
-                            $departmentQuery->where('id', $org->linked_department_id);
-                        }
-                    });
+        $students = Student::query()
+            ->from('students')
+            ->join('student_enrollments as se', function ($join) use ($activeSemester) {
+                $join->on('se.student_id', '=', 'students.id')
+                    ->where('se.academic_year_id', $activeSemester->id);
             })
-            ->where(function ($query) use ($q, $studentNumberQuery) {
-                $query->where('student_number', 'like', "%{$q}%")
-                    ->orWhere('first_name', 'like', "%{$q}%")
-                    ->orWhere('last_name', 'like', "%{$q}%");
+            ->join('programs as p', 'p.id', '=', 'se.program_id')
+            ->join('departments as d', 'd.id', '=', 'p.department_id')
+            ->when($org->type === 'COLLEGE_COUNCIL' && $org->linked_college_id, function ($query) use ($org) {
+                $query->where('d.college_id', $org->linked_college_id);
+            })
+            ->when($org->type === 'CLASS_ORG' && $org->linked_department_id, function ($query) use ($org) {
+                $query->where('p.department_id', $org->linked_department_id);
+            })
+            ->where(function ($w) use ($hasDigit, $studentPrefix, $numericPrefix, $namePrefix, $nameOperator) {
+                if ($hasDigit) {
+                    // Handles both dashed IDs (2023-004) and normalized input (2023004).
+                    $w->where('students.student_number', 'like', $studentPrefix);
 
-                if ($studentNumberQuery !== '') {
-                    $query->orWhere('student_number', 'like', "%{$studentNumberQuery}%");
+                    if ($numericPrefix) {
+                        $w->orWhere('students.student_number', 'like', $numericPrefix);
+                        $this->orWhereNormalizedStudentNumber($w, $numericPrefix);
+                    }
+
+                    return;
                 }
-            })
-            ->with([
-                'enrollments' => fn ($query) => $query
-                    ->where('academic_year_id', $activeSemester->id)
-                    ->with('program'),
-            ])
-            ->limit(8)
-            ->get()
-            ->map(function ($student) use ($activeSemester, $org) {
-                $enrollment = $student->enrollments->first();
 
-                return [
-                    'id'        => $student->id,
-                    'name'      => $student->full_name,
-                    'number'    => $student->student_number,
-                    'program'   => $enrollment?->program?->code ?? '',
-                    'yearLevel' => $enrollment?->year_level,
-                    'hasPaid'   => Transaction::where('student_id', $student->id)
-                        ->where('organization_id', $org->id)
-                        ->where('academic_year_id', $activeSemester->id)
-                        ->where('transaction_type', 'FEE')
-                        ->where('is_void', false)
-                        ->exists(),
-                ];
+                // Text input: case-insensitive prefix match on names.
+                $w->where('students.first_name', $nameOperator, $namePrefix)
+                    ->orWhere('students.last_name', $nameOperator, $namePrefix);
             })
-            ->values()
-            ->toArray();
+            ->select([
+                'students.id',
+                'students.first_name',
+                'students.last_name',
+                'students.middle_name',
+                'students.name_extension',
+                'students.student_number',
+                'p.code as program_code',
+                'se.year_level',
+            ])
+            ->orderBy('students.last_name')
+            ->orderBy('students.first_name')
+            ->limit(self::SEARCH_LIMIT)
+            ->get();
+
+        if ($students->isEmpty()) {
+            $this->searchResults = [];
+            return;
+        }
+
+        // Bulk paid-status check: one query instead of N exists() calls.
+        $paidIds = Transaction::whereIn('student_id', $students->pluck('id'))
+            ->where('organization_id', $org->id)
+            ->where('academic_year_id', $activeSemester->id)
+            ->where('transaction_type', 'FEE')
+            ->where('is_void', false)
+            ->pluck('student_id')
+            ->flip();
+
+        $this->searchResults = $students->map(function ($s) use ($paidIds) {
+            return [
+                'id'        => $s->id,
+                'name'      => $s->full_name,
+                'number'    => $s->student_number,
+                'program'   => $s->program_code ?? '',
+                'yearLevel' => $s->year_level !== null ? (int) $s->year_level : null,
+                'hasPaid'   => $paidIds->has($s->id),
+            ];
+        })->values()->toArray();
     }
 
     // ── Actions ───────────────────────────────────────────────────────────
+
+    public function clearStudentSearch(): void
+    {
+        $this->studentQuery = '';
+        $this->searchResults = [];
+    }
+
+    private function likePrefix(string $value): string
+    {
+        return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], trim($value)) . '%';
+    }
+
+    private function orWhereNormalizedStudentNumber($query, string $numericPrefix): void
+    {
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            $query->orWhereRaw("regexp_replace(students.student_number::text, '[^0-9]', '', 'g') like ?", [$numericPrefix]);
+            return;
+        }
+
+        $query->orWhereRaw("replace(replace(replace(students.student_number, '-', ''), ' ', ''), '.', '') like ?", [$numericPrefix]);
+    }
 
     public function selectStudent(int $studentId): void
     {

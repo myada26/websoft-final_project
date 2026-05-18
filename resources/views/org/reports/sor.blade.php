@@ -199,8 +199,8 @@ body{font-family:'DejaVu Sans','Arial',sans-serif}
         <div class="mt-8 flex gap-8 flex-wrap">
             <div class="min-w-[160px]">
                 <div class="text-xs text-green-400 uppercase tracking-wide mb-6">Prepared by</div>
-                <div class="text-sm font-medium text-green-800 border-t border-green-300 pt-1">{{ auth()->user()->student?->full_name ?? auth()->user()->username }}</div>
-                <div class="text-xs text-green-400">{{ auth()->user()->role }}, {{ $organization->name }}</div>
+                <div class="text-sm font-medium text-green-800 border-t border-green-300 pt-1">{{ $treasurer?->student?->full_name ?? $treasurer?->username ?? '— no treasurer assigned —' }}</div>
+                <div class="text-xs text-green-400">Treasurer, {{ $organization->name }}</div>
             </div>
             <div class="min-w-[160px]">
                 <div class="text-xs text-green-400 uppercase tracking-wide mb-6">Checked by</div>

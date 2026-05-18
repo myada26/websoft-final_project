@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\FeeProfile;         // [Lab 7]
+use App\Models\Organization;        // [perf]
 use App\Models\Remittance;         // [Lab 7]
 use App\Models\Transaction;        // [Lab 7]
 use App\Models\VoidRequest;        // [Lab 7]
@@ -33,7 +34,7 @@ class AppServiceProvider extends ServiceProvider
 
         if (config('app.debug')) {
             \DB::listen(function ($query) {
-                if ($query->time > 0) {
+                if ($query->time > 100) {
                     \Log::warning('SLOW QUERY | TIME: ' . $query->time . 'ms | SQL: ' . $query->sql);
                 }
             });
@@ -58,7 +59,14 @@ class AppServiceProvider extends ServiceProvider
         View::composer(['partials.sidebar-org', 'partials.sidebar-admin'], function () {
             $user = auth()->user();
             if ($user && $user->organization_id && !$user->relationLoaded('organization')) {
-                $user->load('organization');
+                $org = Cache::remember(
+                    "org.{$user->organization_id}",
+                    3600,
+                    fn () => Organization::find($user->organization_id)
+                );
+                if ($org instanceof Organization) {
+                    $user->setRelation('organization', $org);
+                }
             }
         });
     }

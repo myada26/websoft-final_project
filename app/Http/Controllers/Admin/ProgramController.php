@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\College;
 use App\Models\Program;
 use App\Models\Department;
 use Illuminate\Http\Request;
@@ -16,13 +17,17 @@ class ProgramController extends Controller
                 $query->where('name', 'like', "%$s%")
                       ->orWhere('code', 'like', "%$s%");
             }))
-            ->when(request('department_id'), fn($q, $d) => $q->where('department_id', $d))
+            ->when(request('filter_college'), fn($q, $c) => $q->whereHas('department', fn($dq) => $dq->where('college_id', $c)))
+            ->when(request('filter_dept'),    fn($q, $d) => $q->where('department_id', $d))
             ->orderBy('name')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
-        $departments = Department::orderBy('name')->get();
+        $departments    = Department::orderBy('name')->get();
+        $colleges       = College::orderBy('name')->get();
+        $allDepartments = Department::orderBy('name')->get(['id', 'name', 'college_id']);
 
-        return view('admin.programs.index', compact('programs', 'departments'));
+        return view('admin.programs.index', compact('programs', 'departments', 'colleges', 'allDepartments'));
     }
 
     public function create()

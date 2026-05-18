@@ -10,11 +10,13 @@
             <h2 class="text-[22px] font-bold text-green-800">Fee Profiles</h2>
             <p class="text-[13.5px] text-green-400 mt-1 font-medium">Membership fees and collection rules for your organization</p>
         </div>
+        @if(auth()->user()->isAdmin() || auth()->user()->hasRole('CHAIRPERSON'))
         <button @click="open = true" class="px-4 py-2 rounded-lg text-[13.5px] font-bold flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white border-2 border-transparent transition-all shadow-sm">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14" />
             </svg>Create Fee Profile
         </button>
+        @endif
     </div>
 
     <div class="bg-white rounded-xl border border-green-200 shadow-sm overflow-hidden">
