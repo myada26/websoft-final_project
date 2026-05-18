@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission'      => \App\Http\Middleware\CheckPermission::class,
             'role'            => \App\Http\Middleware\CheckRole::class,
             'org.scope'       => \App\Http\Middleware\EnforceOrgScope::class,
+            'force.password.change' => \App\Http\Middleware\ForcePasswordChange::class,
         ]);
 
         // Redirect unauthenticated requests to the named login route

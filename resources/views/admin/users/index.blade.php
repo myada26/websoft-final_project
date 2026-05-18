@@ -101,6 +101,8 @@
                         <td class="px-6 py-4">
                             @if($user->locked_until && $user->locked_until->isFuture())
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-50 text-red-700 text-[11.5px] font-bold"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Locked</span>
+                            @elseif($user->requires_password_change)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 text-[11.5px] font-bold"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Password Change</span>
                             @else
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#dcfce7] text-[#15803d] text-[11.5px] font-bold"><span class="w-1.5 h-1.5 rounded-full bg-[#16a34a]"></span> Active</span>
                             @endif
@@ -110,8 +112,14 @@
                                 <a href="{{ route('admin.users.edit', $user) }}" class="p-1.5 rounded-lg text-green-300 hover:bg-green-200 hover:text-green-600 transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </a>
+                                <form method="POST" action="{{ route('admin.users.reset-password', $user) }}" data-confirm-title="Reset password?" data-confirm-message="A temporary password will be emailed to {{ $user->student?->email ?? 'the linked student email' }}." data-confirm-label="Reset" data-confirm-tone="danger">
+                                    @csrf
+                                    <button type="submit" class="p-1.5 rounded-lg text-green-300 hover:bg-amber-50 hover:text-amber-600 transition-colors" title="Reset password">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v6m-3-3h6m-7.5 8.5a8.5 8.5 0 1110-13.7"/></svg>
+                                    </button>
+                                </form>
                                 @if(auth()->id() !== $user->id)
-                                <form method="POST" action="{{ route('admin.users.destroy', $user) }}" onsubmit="return confirm('Delete {{ addslashes($user->username) }}?')">
+                                <form method="POST" action="{{ route('admin.users.destroy', $user) }}" data-confirm-message="Delete user {{ $user->username }}?" data-confirm-label="Delete" data-confirm-tone="danger">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="p-1.5 rounded-lg text-green-300 hover:bg-red-50 hover:text-red-600 transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>

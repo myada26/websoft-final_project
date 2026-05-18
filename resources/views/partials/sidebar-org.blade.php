@@ -38,7 +38,7 @@
         ['route' => 'org.users.index', 'active' => 'org.users.*', 'label' => 'User Management', 'icon' => 'settings', 'roles' => ['CHAIRPERSON']],
         ['route' => 'org.documentation', 'active' => 'org.documentation', 'label' => 'Documentation', 'icon' => 'book-open', 'roles' => ['CHAIRPERSON', 'TREASURER', 'COLLECTOR', 'AUDITOR', 'SECRETARY']],
         ['route' => 'org.audit-logs.index', 'active' => 'org.audit-logs.*', 'label' => 'Audit Logs', 'icon' => 'file-clock', 'roles' => ['CHAIRPERSON', 'AUDITOR']],
-        ['route' => 'org.reports.sor', 'active' => 'org.reports.sor', 'label' => 'Summary of Receipts', 'icon' => 'chart-bar', 'roles' => ['CHAIRPERSON']],
+        ['route' => 'org.reports.sor', 'active' => 'org.reports.sor', 'label' => 'Summary of Receipts', 'icon' => 'chart-bar', 'roles' => ['CHAIRPERSON', 'TREASURER']],
         ],
         ];
         @endphp
@@ -62,6 +62,29 @@
             </div>
         </div>
         @endforeach
+
+        <div class="mb-4">
+            <div class="text-[10px] font-bold tracking-widest uppercase text-green-300 px-3 mb-2">Account</div>
+            <div class="space-y-0.5">
+                @php $profileActive = request()->routeIs('account.profile'); @endphp
+                <a href="{{ route('account.profile') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium transition-all {{ $profileActive ? 'bg-green-600 text-white shadow-sm' : 'text-[#b7dfc7] hover:bg-white/5 hover:text-white' }}">
+                    @include('partials.ui-icon', ['name' => 'users', 'class' => 'w-4 h-4 shrink-0 '.($profileActive ? 'opacity-100' : 'opacity-70')])
+                    <span class="truncate">User Profile</span>
+                </a>
+                @php $passwordActive = request()->routeIs('account.password.*'); @endphp
+                <a href="{{ route('account.password.edit') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium transition-all {{ $passwordActive ? 'bg-green-600 text-white shadow-sm' : 'text-[#b7dfc7] hover:bg-white/5 hover:text-white' }}">
+                    @include('partials.ui-icon', ['name' => 'settings', 'class' => 'w-4 h-4 shrink-0 '.($passwordActive ? 'opacity-100' : 'opacity-70')])
+                    <span class="truncate">Change Password</span>
+                </a>
+                <form method="POST" action="{{ route('logout') }}" data-confirm-title="Sign out?" data-confirm-message="Are you sure you want to sign out of FCATS?" data-confirm-label="Sign Out">
+                    @csrf
+                    <button type="submit" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-[#b7dfc7] hover:bg-white/5 hover:text-white transition-all">
+                        @include('partials.ui-icon', ['name' => 'logout', 'class' => 'w-4 h-4 shrink-0 opacity-70'])
+                        <span class="truncate">Logout</span>
+                    </button>
+                </form>
+            </div>
+        </div>
     </nav>
 
     <div class="relative mt-auto p-4 border-t border-white/10 shrink-0 bg-[#0a3816]/30">

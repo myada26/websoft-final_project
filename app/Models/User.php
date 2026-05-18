@@ -23,6 +23,7 @@ class User extends Authenticatable
         'organization_id',
         'username',
         'password_hash',
+        'requires_password_change',
         'role',
         'is_active',
         'last_login',
@@ -38,6 +39,7 @@ class User extends Authenticatable
     {
         return [
             'is_active'              => 'boolean',
+            'requires_password_change' => 'boolean',
             'last_login'             => 'datetime',
             'locked_until'           => 'datetime',
             'failed_login_attempts'  => 'integer',
@@ -113,6 +115,16 @@ class User extends Authenticatable
     public function auditLogs(): HasMany
     {
         return $this->hasMany(AuditLog::class);
+    }
+
+    public function getFullNameAttribute(): ?string
+    {
+        return $this->student?->full_name;
+    }
+
+    public function getLastLoginAtAttribute()
+    {
+        return $this->last_login;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────

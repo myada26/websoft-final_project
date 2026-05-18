@@ -3,99 +3,155 @@
 @section('page-title', 'Add User')
 
 @section('content')
-<div>
-    <div style="margin-bottom:16px">
-        <a href="{{ route('org.users.index') }}" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#4a6356;text-decoration:none">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="15 18 9 12 15 6" />
-            </svg>
+<div class="page-shell-narrow" x-data="studentUserForm('{{ route('org.users.lookup-student') }}')" x-init="initFromOld()">
+    <div>
+        <a href="{{ route('org.users.index') }}" class="btn-ghost px-0">
+            <span aria-hidden="true">&lt;</span>
             Back to Users
         </a>
     </div>
 
-    <div style="max-width:600px">
-        <div style="background:white;border-radius:12px;border:1px solid #dde8e1;box-shadow:0 1px 2px rgba(0,0,0,.06)">
-            <div style="padding:16px 20px;border-bottom:1px solid #eaf0ec">
-                <div style="font-size:15px;font-weight:700">New Officer Account</div>
-                <div style="font-size:12px;color:#8aa89a;margin-top:2px">Create a login for an officer in {{ auth()->user()->organization->name ?? 'your organization' }}</div>
-            </div>
-            <div style="padding:24px">
-                <form method="POST" action="{{ route('org.users.store') }}">
-                    @csrf
-
-                    @if($errors->any())
-                    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;margin-bottom:16px">
-                        <ul style="margin:0;padding-left:18px;font-size:13px;color:#dc2626">
-                            @foreach($errors->all() as $err)<li>{{ $err }}</li>@endforeach
-                        </ul>
-                    </div>
-                    @endif
-
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
-                        <div>
-                            <label style="display:block;font-size:12.5px;font-weight:600;color:#0f1f17;margin-bottom:5px">Username <span style="color:#dc2626">*</span></label>
-                            <input type="text" name="username" value="{{ old('username') }}" placeholder="e.g. jdelacruz"
-                                style="width:100%;padding:9px 12px;border:1.5px solid {{ $errors->has('username') ? '#fca5a5' : '#dde8e1' }};border-radius:8px;font-size:13.5px;outline:none;box-sizing:border-box" required>
-                            @error('username')<div style="font-size:11.5px;color:#dc2626;margin-top:4px">{{ $message }}</div>@enderror
-                        </div>
-                        <div>
-                            <label style="display:block;font-size:12.5px;font-weight:600;color:#0f1f17;margin-bottom:5px">Password <span style="color:#dc2626">*</span></label>
-                            <input type="password" name="password" placeholder="Min. 8 characters"
-                                style="width:100%;padding:9px 12px;border:1.5px solid {{ $errors->has('password') ? '#fca5a5' : '#dde8e1' }};border-radius:8px;font-size:13.5px;outline:none;box-sizing:border-box" required>
-                            @error('password')<div style="font-size:11.5px;color:#dc2626;margin-top:4px">{{ $message }}</div>@enderror
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom:16px">
-                        <label style="display:block;font-size:12.5px;font-weight:600;color:#0f1f17;margin-bottom:5px">Role <span style="color:#dc2626">*</span></label>
-                        <select name="role" style="width:100%;padding:9px 12px;border:1.5px solid #dde8e1;border-radius:8px;font-size:13.5px;outline:none;box-sizing:border-box;background:white" required>
-                            <option value="CHAIRPERSON" {{ old('role') === 'CHAIRPERSON' ? 'selected' : '' }}>Chairperson</option>
-                            <option value="TREASURER" {{ old('role') === 'TREASURER' ? 'selected' : '' }}>Treasurer</option>
-                            <option value="COLLECTOR" {{ old('role') === 'COLLECTOR' ? 'selected' : '' }}>Collector</option>
-                            <option value="AUDITOR" {{ old('role') === 'AUDITOR' ? 'selected' : '' }}>Auditor</option>
-                        </select>
-                    </div>
-
-                    {{-- Permissions --}}
-                    <div style="margin-bottom:16px">
-                        <label style="display:block;font-size:12.5px;font-weight:600;color:#0f1f17;margin-bottom:8px">Permissions</label>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-                            @php
-                            $perms = [
-                            'students:view' => 'View Enrolled Students',
-                            'students:enroll' => 'Enroll Students',
-                            'pos:create' => 'Process Transactions (POS)',
-                            'transactions:view' => 'View Transaction History',
-                            'void:request' => 'Request Void',
-                            'void:approve' => 'Approve Void',
-                            'void:review' => 'Review Void Requests',
-                            'remit:view' => 'View Remittances',
-                            'remit:create' => 'Create Remittance',
-                            'remit:verify' => 'Verify Remittance',
-                            'remit:accept' => 'Accept Remittance',
-                            'reports:view' => 'View Reports',
-                            ];
-                            @endphp
-                            @foreach($perms as $slug => $label)
-                            <label style="display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid #dde8e1;border-radius:7px;cursor:pointer">
-                                <input type="checkbox" name="permissions[]" value="{{ $slug }}"
-                                    {{ in_array($slug, old('permissions', [])) ? 'checked' : '' }}
-                                    style="width:14px;height:14px;accent-color:#27a05a">
-                                <span style="font-size:12.5px;color:#0f1f17">{{ $label }}</span>
-                            </label>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <div style="display:flex;align-items:center;gap:10px;padding-top:8px;border-top:1px solid #eaf0ec;margin-top:8px">
-                        <button type="submit" class="btn-green" style="padding:8px 18px;border-radius:8px;font-size:13.5px;font-weight:600;border:none;cursor:pointer">
-                            Create User
-                        </button>
-                        <a href="{{ route('org.users.index') }}" class="btn-ghost" style="padding:8px 14px;border-radius:8px;font-size:13.5px;text-decoration:none">Cancel</a>
-                    </div>
-                </form>
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">New Officer Account</h2>
+                <p class="panel-subtitle">Create a login for an officer in {{ auth()->user()->organization->name ?? 'your organization' }}.</p>
             </div>
         </div>
+
+        <form method="POST" action="{{ route('org.users.store') }}" class="panel-body space-y-5">
+            @csrf
+
+            @if($errors->any())
+                <div class="alert-error">
+                    <span>{{ $errors->first() }}</span>
+                </div>
+            @endif
+
+            <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                    <label for="student_number" class="form-label">Student ID</label>
+                    <input id="student_number"
+                           name="student_number"
+                           value="{{ old('student_number') }}"
+                           x-model.debounce.500ms="studentNumber"
+                           @input.debounce.500ms="lookupStudent()"
+                           class="form-control"
+                           placeholder="e.g. 2024000001"
+                           autocomplete="off"
+                           required>
+                    <p class="form-help" x-text="lookupMessage || 'Name fields are filled from the student record.'"></p>
+                    @error('student_number')<p class="form-error">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="username" class="form-label">Username</label>
+                    <input id="username"
+                           name="username"
+                           value="{{ old('username') }}"
+                           class="form-control font-mono"
+                           placeholder="Auto-generated if left blank">
+                    @error('username')<p class="form-error">{{ $message }}</p>@enderror
+                </div>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-3">
+                <div>
+                    <label class="form-label">First Name</label>
+                    <input x-model="student.first_name" class="form-control bg-green-50" readonly>
+                </div>
+                <div>
+                    <label class="form-label">Middle Name</label>
+                    <input x-model="student.middle_name" class="form-control bg-green-50" readonly>
+                </div>
+                <div>
+                    <label class="form-label">Last Name</label>
+                    <input x-model="student.last_name" class="form-control bg-green-50" readonly>
+                </div>
+            </div>
+
+            <div>
+                <label for="role" class="form-label">Role</label>
+                <select id="role" name="role" class="form-control" required>
+                    <option value="CHAIRPERSON" @selected(old('role') === 'CHAIRPERSON')>Chairperson</option>
+                    <option value="TREASURER" @selected(old('role') === 'TREASURER')>Treasurer</option>
+                    <option value="COLLECTOR" @selected(old('role') === 'COLLECTOR')>Collector</option>
+                    <option value="AUDITOR" @selected(old('role') === 'AUDITOR')>Auditor</option>
+                    <option value="SECRETARY" @selected(old('role') === 'SECRETARY')>Secretary</option>
+                </select>
+                @error('role')<p class="form-error">{{ $message }}</p>@enderror
+            </div>
+
+            <div>
+                <label for="password" class="form-label">Temporary Password</label>
+                <input id="password"
+                       type="password"
+                       name="password"
+                       class="form-control"
+                       placeholder="Leave blank to generate and email a temporary password"
+                       autocomplete="new-password">
+                <p class="form-help">New accounts are always required to change this password after login.</p>
+                @error('password')<p class="form-error">{{ $message }}</p>@enderror
+            </div>
+
+            <div class="panel-footer -mx-5 -mb-5">
+                <a href="{{ route('org.users.index') }}" class="btn-ghost">Cancel</a>
+                <button type="submit" class="btn-green">Create User</button>
+            </div>
+        </form>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function studentUserForm(lookupUrl) {
+    return {
+        studentNumber: @json(old('student_number', '')),
+        lookupMessage: '',
+        student: { first_name: '', middle_name: '', last_name: '' },
+
+        initFromOld() {
+            if (this.studentNumber) {
+                this.lookupStudent();
+            }
+        },
+
+        async lookupStudent() {
+            this.student = { first_name: '', middle_name: '', last_name: '' };
+            this.lookupMessage = '';
+
+            if (!this.studentNumber || this.studentNumber.length < 3) {
+                return;
+            }
+
+            try {
+                const url = new URL(lookupUrl, window.location.origin);
+                url.searchParams.set('student_number', this.studentNumber);
+                const response = await fetch(url, {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                });
+
+                if (!response.ok) {
+                    this.lookupMessage = 'No matching student found.';
+                    return;
+                }
+
+                const data = await response.json();
+                this.student = {
+                    first_name: data.first_name || '',
+                    middle_name: data.middle_name || '',
+                    last_name: data.last_name || '',
+                };
+                this.lookupMessage = data.email
+                    ? 'Student profile found.'
+                    : 'Student profile found. Add a manual password because no email is recorded.';
+            } catch (error) {
+                this.lookupMessage = 'Student lookup is temporarily unavailable.';
+            }
+        },
+    };
+}
+</script>
+@endpush

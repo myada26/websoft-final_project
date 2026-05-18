@@ -112,6 +112,11 @@
         </div>
     </div>
 
+    {{-- Global confirmation modal for every POST/PATCH/PUT/DELETE form.
+         Opt out per-form with data-no-confirm. Per-form override via
+         data-confirm-title / data-confirm-message / data-confirm-label / data-confirm-tone. --}}
+    <x-confirm-modal />
+
     @stack('scripts')
     @livewireScripts
 </body>

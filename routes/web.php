@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Org\DashboardController; // [AI Narrator]
@@ -7,12 +8,26 @@ use App\Http\Controllers\Org\ReportController; // [AI Narrator]
 use App\Http\Controllers\PublicAccountabilityController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth'])->prefix('notifications')->name('notifications.')->group(function () {
+Route::middleware(['auth', 'session.timeout', 'force.password.change'])->prefix('notifications')->name('notifications.')->group(function () {
     Route::get('/',                  [NotificationController::class, 'index'])->name('index');
     Route::post('{id}/read',         [NotificationController::class, 'markAsRead'])->name('read');
     Route::post('read-all',          [NotificationController::class, 'markAllAsRead'])->name('read-all');
     Route::delete('{id}',            [NotificationController::class, 'destroy'])->name('destroy');
 });
+
+Route::middleware(['auth', 'session.timeout'])->group(function () {
+    Route::get('/password/force-change', [AccountController::class, 'forceChange'])->name('password.force-change');
+    Route::put('/password/force-change', [AccountController::class, 'updateForcedPassword'])->name('password.force-change.update');
+});
+
+Route::middleware(['auth', 'session.timeout', 'force.password.change'])
+    ->prefix('account')
+    ->name('account.')
+    ->group(function () {
+        Route::get('/profile', [AccountController::class, 'profile'])->name('profile');
+        Route::get('/password', [AccountController::class, 'editPassword'])->name('password.edit');
+        Route::put('/password', [AccountController::class, 'updatePassword'])->name('password.update');
+    });
 
 // ── Public ────────────────────────────────────────────────────────────────────
 Route::get('/', fn() => redirect()->route('login'));
@@ -28,7 +43,7 @@ Route::get('/check-fees', [PublicAccountabilityController::class, 'index'])
 
 // ── Admin (SSC) ───────────────────────────────────────────────────────────────
 Route::prefix('admin')
-    ->middleware(['auth', 'session.timeout', 'role:SSC_ADMIN'])
+    ->middleware(['auth', 'session.timeout', 'force.password.change', 'role:SSC_ADMIN'])
     ->name('admin.')
     ->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'index'])->name('dashboard');
@@ -70,6 +85,10 @@ Route::prefix('admin')
         Route::get('imports/{importLog}/status',                 [\App\Http\Controllers\Admin\StudentImportController::class, 'status'])->name('imports.status');
 
         // Users
+        Route::get('users/student-lookup', [\App\Http\Controllers\Admin\UserController::class, 'lookupStudent'])
+            ->name('users.lookup-student');
+        Route::post('users/{user}/reset-password', [\App\Http\Controllers\Admin\UserController::class, 'resetPassword'])
+            ->name('users.reset-password');
         Route::resource('users',          \App\Http\Controllers\Admin\UserController::class)->except(['show']);
 
         // Audit logs (read-only)
@@ -82,7 +101,7 @@ Route::prefix('admin')
 
 // ── Org (COLLEGE_COUNCIL / CLASS_ORG) ────────────────────────────────────────
 Route::prefix('org')
-    ->middleware(['auth', 'session.timeout', 'org.scope'])
+    ->middleware(['auth', 'session.timeout', 'force.password.change', 'org.scope'])
     ->name('org.')
     ->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Org\DashboardController::class, 'index'])
@@ -135,10 +154,10 @@ Route::prefix('org')
 
         // Reports
         Route::get('reports/sor', [\App\Http\Controllers\Org\ReportController::class, 'sor'])
-            ->middleware('role:CHAIRPERSON')
+            ->middleware('role:CHAIRPERSON,TREASURER')
             ->name('reports.sor');
         Route::get('reports/sor/pdf', [\App\Http\Controllers\Org\ReportController::class, 'sorPdf'])
-            ->middleware('role:CHAIRPERSON')
+            ->middleware('role:CHAIRPERSON,TREASURER')
             ->name('reports.sor.pdf');
 
         // ── Events (Module 8 — FR-0026) ───────────────────────────────────────────
@@ -198,6 +217,9 @@ Route::prefix('org')
         Route::resource('fee-profiles', \App\Http\Controllers\Org\FeeProfileController::class)->except(['show'])->middleware('role:CHAIRPERSON');
 
         // Users (org-scoped, chairperson permission)
+        Route::get('users/student-lookup', [\App\Http\Controllers\Org\UserController::class, 'lookupStudent'])
+            ->middleware('role:CHAIRPERSON')
+            ->name('users.lookup-student');
         Route::resource('users', \App\Http\Controllers\Org\UserController::class)->except(['show'])->middleware('role:CHAIRPERSON');
 
         // Reports

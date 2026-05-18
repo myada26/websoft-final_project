@@ -436,7 +436,7 @@
                 </div>
                 @endif
 
-                <form method="POST" action="{{ route('login') }}" novalidate>
+                <form method="POST" action="{{ route('login') }}" novalidate data-no-confirm>
                     @csrf
 
                     <div class="gl-fields">

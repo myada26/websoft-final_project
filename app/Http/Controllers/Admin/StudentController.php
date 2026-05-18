@@ -101,10 +101,14 @@ class StudentController extends Controller
 
         $students = $students->paginate(25);
 
-        $programs       = Cache::remember('dropdown_programs',      3600, fn () => Program::orderBy('name')->get());
-        $colleges       = Cache::remember('dropdown_colleges',      3600, fn () => College::orderBy('name')->get());
-        $allDepartments = Cache::remember('dropdown_departments',   3600, fn () => Department::orderBy('name')->get(['id', 'name', 'code', 'college_id']));
-        $allPrograms    = Cache::remember('dropdown_programs_slim', 3600, fn () => Program::orderBy('name')->get(['id', 'name', 'code', 'department_id']));
+        // [perf] Cache as plain arrays (file cache corrupts Eloquent models on Windows),
+        // then rehydrate as stdClass so Blade can still access ->id, ->name, ->code.
+        $hydrate = fn (array $rows) => collect($rows)->map(fn ($row) => (object) $row);
+
+        $programs       = $hydrate(Cache::remember('dropdown_programs',      3600, fn () => Program::orderBy('name')->get(['id', 'name', 'code', 'department_id'])->toArray()));
+        $colleges       = $hydrate(Cache::remember('dropdown_colleges',      3600, fn () => College::orderBy('name')->get(['id', 'name', 'code'])->toArray()));
+        $allDepartments = $hydrate(Cache::remember('dropdown_departments',   3600, fn () => Department::orderBy('name')->get(['id', 'name', 'code', 'college_id'])->toArray()));
+        $allPrograms    = $hydrate(Cache::remember('dropdown_programs_slim', 3600, fn () => Program::orderBy('name')->get(['id', 'name', 'code', 'department_id'])->toArray()));
 
         return view('admin.students.index', compact(
             'students', 'activeSemester', 'programs',
