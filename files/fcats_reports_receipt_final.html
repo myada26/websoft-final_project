@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FCATS — Reports · Central Mindanao University</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --cmu-green:      #00491E;
+  --cmu-green-mid:  #1B6332;
+  --cmu-green-pale: #EBF3E8;
+  --cmu-green-text: #1E4D0F;
+
+  --blue-pale:  #E8F0FB;
+  --blue-text:  #1A3F78;
+  --purple-pale:#EEE8FB;
+  --purple-text:#4A1D96;
+  --amber-pale: #FFF3DC;
+  --amber-text: #7A4800;
+  --red-pale:   #FBEBEB;
+  --red-text:   #7A1F1F;
+  --slate-pale: #F0EFEB;
+  --slate-text: #5C5A55;
+
+  --bg:         #F5F4F0;
+  --surface:    #FFFFFF;
+  --border:     #E4E2DC;
+  --border-med: #C9C7C0;
+  --text-1:     #1A1916;
+  --text-2:     #6B6860;
+  --text-3:     #AEACA6;
+
+  --sans: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text-1);font-size:14px;line-height:1.5;min-height:100vh}
+
+/* ═══════════════════════════════════════════
+   APP SHELL NAV
+═══════════════════════════════════════════ */
+.app-shell{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+.topbar{
+  background:var(--cmu-green);
+  height:50px;
+  display:flex;
+  align-items:center;
+  padding:0 20px;
+  gap:0;
+  flex-shrink:0;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.topbar-brand{
+  display:flex;align-items:center;gap:10px;
+  margin-right:28px;
+}
+.topbar-logo{
+  width:28px;height:28px;
+  background:rgba(255,255,255,0.15);
+  border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:white;letter-spacing:.02em;
+}
+.topbar-name{font-size:13px;font-weight:600;color:white;letter-spacing:.02em;opacity:.9}
+
+.nav-item{
+  height:50px;display:flex;align-items:center;
+  padding:0 14px;
+  font-size:12.5px;color:rgba(255,255,255,.5);
+  border:none;background:transparent;cursor:pointer;
+  border-bottom:2px solid transparent;
+  font-family:var(--sans);
+  transition:color .12s;
+}
+.nav-item:hover{color:rgba(255,255,255,.8)}
+.nav-item.active{color:white;border-bottom:2px solid white}
+
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.user-chip{
+  display:flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,0.1);
+  border-radius:20px;padding:4px 10px 4px 5px;
+}
+.user-avatar{
+  width:22px;height:22px;border-radius:50%;
+  background:rgba(255,255,255,0.25);
+  font-size:9px;font-weight:700;color:white;
+  display:flex;align-items:center;justify-content:center;
+}
+.user-name{font-size:11px;color:rgba(255,255,255,.85);font-weight:500}
+
+/* ═══════════════════════════════════════════
+   REPORT SUBTABS
+═══════════════════════════════════════════ */
+.report-tabs{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:0 20px;
+  display:flex;gap:0;
+  flex-shrink:0;
+}
+.rtab{
+  height:42px;display:flex;align-items:center;gap:7px;
+  padding:0 18px;font-size:12.5px;
+  color:var(--text-2);border:none;background:transparent;cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-1px;
+  font-family:var(--sans);transition:color .12s;
+}
+.rtab:hover{color:var(--text-1)}
+.rtab.active{color:var(--text-1);border-bottom:2px solid var(--cmu-green);font-weight:500}
+.chip-placeholder{
+  font-size:9px;padding:1px 6px;border-radius:10px;
+  background:var(--slate-pale);color:var(--text-3);
+  font-weight:600;letter-spacing:.03em;
+}
+
+/* ═══════════════════════════════════════════
+   SCREENS
+═══════════════════════════════════════════ */
+.main-area{flex:1;overflow:hidden;display:flex}
+.r-screen{display:none;width:100%;height:100%}
+.r-screen.active{display:flex}
+
+/* ═══════════════════════════════════════════
+   SOR LAYOUT  (left panel + right receipt)
+═══════════════════════════════════════════ */
+.sor-left{flex:1;overflow-y:auto;padding:20px 24px}
+.sor-right{
+  width:340px;flex-shrink:0;
+  border-left:1px solid var(--border);
+  overflow-y:auto;
+  background:var(--surface);
+}
+
+/* ── Inner view tabs (On-screen / Print) ── */
+.view-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:18px}
+.vtab{
+  padding:8px 16px;font-size:12px;
+  color:var(--text-2);border:none;background:transparent;cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-1px;
+  font-family:var(--sans);
+}
+.vtab.active{color:var(--text-1);border-bottom:2px solid var(--text-1);font-weight:500}
+.v-screen{display:none}.v-screen.active{display:block}
+
+/* ── Header block ── */
+.sor-head-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.sor-org{font-size:14px;font-weight:500;margin-bottom:3px}
+.sor-meta{font-size:11.5px;color:var(--text-2);display:flex;gap:14px;flex-wrap:wrap}
+
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 13px;border-radius:var(--r-sm);
+  font-size:12px;font-family:var(--sans);cursor:pointer;
+  border:none;font-weight:500;
+}
+.btn-primary{background:var(--cmu-green);color:white}
+.btn-primary:hover{background:var(--cmu-green-mid)}
+.btn-ghost{background:transparent;color:var(--text-2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--bg)}
+
+/* ── Stat grid ── */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:16px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 13px}
+.stat-lbl{font-size:10px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.stat-val{font-size:19px;font-weight:500}
+.stat-val.green{color:var(--cmu-green)}
+.stat-val.amber{color:var(--amber-text)}
+.stat-val.muted{color:var(--text-3)}
+
+/* ── Card ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:14px;overflow:hidden}
+.card-head{padding:12px 16px 0;font-size:10.5px;font-weight:500;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em}
+.card-body{padding:12px 16px 14px}
+
+/* ── Type rows ── */
+.type-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.type-row:last-child{border-bottom:none}
+.type-left{display:flex;align-items:center;gap:9px}
+.type-desc{font-size:12px;color:var(--text-2)}
+.type-right{display:flex;align-items:center;gap:12px}
+.type-ct{font-size:11.5px;color:var(--text-2)}
+.type-amt{font-size:13px;font-weight:500;font-family:var(--mono)}
+
+/* ── Badges ── */
+.badge{display:inline-block;font-size:10.5px;padding:2px 8px;border-radius:var(--r-sm);font-weight:500}
+.b-reg{background:var(--cmu-green-pale);color:var(--cmu-green-text)}
+.b-irr{background:var(--blue-pale);color:var(--blue-text)}
+.b-ext{background:var(--purple-pale);color:var(--purple-text)}
+.b-par{background:var(--amber-pale);color:var(--amber-text)}
+.b-fin{background:var(--red-pale);color:var(--red-text)}
+.b-voi{background:var(--slate-pale);color:var(--slate-text)}
+
+/* ── Batch table ── */
+.btable{width:100%;border-collapse:collapse;font-size:11.5px}
+.btable th{
+  font-size:10px;font-weight:500;color:var(--text-2);
+  text-align:right;padding:7px 10px;
+  border-bottom:1px solid var(--border);
+  text-transform:uppercase;letter-spacing:.05em;
+  white-space:nowrap;
+}
+.btable th:first-child{text-align:left}
+.btable td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono);font-size:11.5px}
+.btable td:first-child{text-align:left;font-family:var(--sans);font-size:11.5px}
+.btable tr:last-child td{font-weight:600;background:var(--bg);border-top:1px solid var(--border-med)}
+.btable tr:hover:not(:last-child) td{background:#fafaf7}
+
+/* ── Sig block ── */
+.sig-row{display:flex;gap:28px;flex-wrap:wrap;margin-top:18px;padding-top:4px}
+.sig-block{flex:1;min-width:140px}
+.sig-lbl{font-size:10px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:22px}
+.sig-name{font-size:12.5px;font-weight:500;border-top:1px solid var(--text-1);padding-top:5px}
+.sig-role{font-size:11px;color:var(--text-2)}
+
+/* ═══════════════════════════════════════════
+   PRINT DOC PREVIEW
+═══════════════════════════════════════════ */
+.print-wrap{background:var(--bg);padding:18px;border-radius:var(--r-lg)}
+.pdoc{
+  background:#fff;border:1px solid #ddd;border-radius:var(--r-sm);
+  padding:32px 36px;color:#111;
+  font-family:'Georgia',serif;max-width:720px;margin:0 auto;
+}
+.pdoc-header{text-align:center;margin-bottom:18px;padding-bottom:12px;border-bottom:2px solid #111}
+.pdoc-uni{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#555;margin-bottom:3px}
+.pdoc-title{font-size:18px;font-weight:700;margin-bottom:2px}
+.pdoc-sub{font-size:11px;color:#666}
+.pdoc-org{margin-bottom:12px;padding:9px 12px;border:1px solid #ccc;border-radius:3px}
+.pdoc-org-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:2px}
+.pdoc-org-name{font-size:13px;font-weight:700}
+.pdoc-meta{display:flex;gap:20px;margin-bottom:10px;font-size:10.5px;color:#555;flex-wrap:wrap}
+.pdoc-meta b{color:#111}
+
+/* Summary cards (6 col) */
+.pdoc-cards{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:14px}
+.pcard{border:1px solid #e0e0e0;border-radius:3px;padding:7px 6px;text-align:center}
+.pcard-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:#888;margin-bottom:2px}
+.pcard-val{font-size:14px;font-weight:700;color:#111}
+.pcard-sub{font-size:9px;color:#666}
+
+/* Print table */
+.ptable{width:100%;border-collapse:collapse;font-size:10.5px;margin-bottom:14px}
+.ptable th{background:#111;color:#fff;padding:5px 7px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.05em}
+.ptable th:nth-child(n+3){text-align:right}
+.ptable td{padding:4px 7px;border-bottom:1px solid #ececec;vertical-align:top}
+.ptable td:nth-child(n+3){text-align:right}
+.ptable tr.sub td{background:#f5f5f5;font-weight:700;border-top:1px solid #ccc}
+.ptable tr.grand td{background:#111;color:#fff;font-weight:700;font-size:11px}
+
+/* Type pills */
+.pill{display:inline-block;font-size:8px;padding:1px 5px;border-radius:2px;font-weight:700}
+.p-r{background:#EBF3E8;color:#1E4D0F}
+.p-i{background:#E8F0FB;color:#1A3F78}
+.p-e{background:#EEE8FB;color:#4A1D96}
+.p-p{background:#FFF3DC;color:#7A4800}
+.p-f{background:#FBEBEB;color:#7A1F1F}
+.p-v{background:#f0f0f0;color:#888}
+
+.pdoc-sig{display:flex;justify-content:space-between;margin-top:22px;padding-top:12px;border-top:1px solid #ccc;font-size:10.5px}
+.psc{text-align:center;width:150px}
+.psc-line{border-top:1px solid #111;padding-top:4px;margin-top:30px;font-weight:700;font-size:10.5px}
+.psc-role{color:#888;font-size:9.5px}
+.pdoc-foot{text-align:center;font-size:8.5px;color:#bbb;margin-top:12px;padding-top:7px;border-top:1px solid #eee}
+
+/* ═══════════════════════════════════════════
+   RECEIPT SIDEBAR
+═══════════════════════════════════════════ */
+.rcpt-header-bar{
+  padding:13px 16px;
+  border-bottom:1px solid var(--border);
+  font-size:10.5px;font-weight:500;
+  color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.rcpt-tabs{display:flex;border-bottom:1px solid var(--border)}
+.rctab{
+  flex:1;padding:9px 0;text-align:center;font-size:11px;
+  color:var(--text-2);border:none;background:transparent;cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-1px;font-family:var(--sans);
+}
+.rctab.active{color:var(--text-1);border-bottom:2px solid var(--cmu-green);font-weight:500}
+.rc-screen{display:none;padding:14px}.rc-screen.active{display:block}
+
+/* Receipt card */
+.receipt{
+  background:white;border:1.5px solid #333;
+  font-family:'Segoe UI',sans-serif;font-size:12px;
+}
+.r-head{background:var(--cmu-green);color:white;padding:16px 14px;text-align:center}
+.r-logo{
+  width:48px;height:48px;background:rgba(255,255,255,0.18);
+  border-radius:50%;margin:0 auto 9px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:15px;letter-spacing:.02em;
+}
+.r-uni{font-size:9.5px;opacity:.8;letter-spacing:.07em;text-transform:uppercase}
+.r-college{font-size:11px;opacity:.9;margin-top:2px}
+.r-council{font-size:11px;opacity:.9}
+.r-title{font-size:13px;font-weight:700;letter-spacing:.12em;margin-top:10px;opacity:.95}
+
+.r-meta{padding:9px 13px;background:#f9f9f7;border-bottom:1.5px dashed #ccc}
+.r-mrow{display:flex;justify-content:space-between;margin-bottom:4px;font-size:10.5px}
+.r-mrow:last-child{margin-bottom:0}
+.r-mlbl{font-weight:600;color:#333}
+.r-mval{color:#555;font-family:var(--mono)}
+
+.r-student{padding:11px 13px;border-bottom:1.5px dashed #ccc}
+.r-irow{display:flex;margin-bottom:6px;font-size:11px}
+.r-irow:last-child{margin-bottom:0}
+.r-ilbl{font-weight:600;min-width:90px;color:#444}
+.r-ival{color:#555;flex:1}
+
+.r-tx{padding:11px 13px;border-bottom:1.5px dashed #ccc}
+.r-txtype{font-size:11px;font-weight:700;color:#1A3F78;text-transform:uppercase;margin-bottom:8px}
+.r-drow{display:flex;justify-content:space-between;margin-bottom:5px;font-size:11px}
+.r-dlbl{color:#666}
+.r-dval{font-weight:600}
+
+.r-breakdown{margin-top:10px;padding-top:10px;border-top:1px solid #e5e5e5}
+.r-brow{display:flex;justify-content:space-between;margin-bottom:4px;font-size:11px}
+.r-blbl{color:#666}
+.r-bval{font-weight:600;font-family:var(--mono)}
+.r-bval.red{color:#c62828}
+.r-bval.green{color:#1B6332}
+.status-pill{
+  display:inline-block;padding:3px 10px;border-radius:10px;
+  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:7px;
+}
+.sp-full{background:#EBF3E8;color:#1E4D0F}
+.sp-partial{background:#FFF3DC;color:#7A4800}
+
+.r-pay{padding:10px 13px;background:#f9f9f7;border-bottom:1px solid #ddd}
+.r-prow{font-size:10.5px;color:#555;margin-bottom:4px}
+.r-prow:last-child{margin-bottom:0}
+.r-prow strong{color:#333}
+
+.r-total{padding:14px;background:var(--cmu-green);color:white;text-align:center}
+.r-total-lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.8;margin-bottom:3px}
+.r-total-amt{font-size:26px;font-weight:700;font-family:var(--mono);margin-bottom:3px}
+.r-total-words{font-size:10px;font-style:italic;opacity:.85}
+
+.r-officer{padding:12px 13px;border-bottom:1px solid #ddd;text-align:center}
+.r-olbl{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#888;margin-bottom:5px}
+.r-oname{font-size:12.5px;font-weight:600;color:#222}
+.r-orole{font-size:11px;color:#666;margin-bottom:12px}
+.r-osig{border-top:1px solid #444;width:170px;margin:0 auto;padding-top:4px;font-size:8.5px;color:#aaa;text-align:center}
+
+.r-foot{padding:10px 13px;text-align:center;font-size:9px;color:#aaa;line-height:1.5}
+
+/* ═══════════════════════════════════════════
+   PLACEHOLDER
+═══════════════════════════════════════════ */
+.placeholder{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100%;width:100%;gap:12px;color:var(--text-3);padding:40px;
+}
+.ph-icon{
+  width:60px;height:60px;border:2px dashed var(--border-med);
+  border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;
+  font-size:26px;
+}
+.ph-title{font-size:14px;font-weight:500;color:var(--text-2)}
+.ph-sub{font-size:12px;color:var(--text-3);text-align:center;max-width:260px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+<!-- ══ TOP NAV ════════════════════════════════ -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">CMU</div>
+    <span class="topbar-name">FCATS</span>
+  </div>
+  <button class="nav-item">Dashboard</button>
+  <button class="nav-item">POS</button>
+  <button class="nav-item">Students</button>
+  <button class="nav-item">Remittance</button>
+  <button class="nav-item active">Reports</button>
+  <button class="nav-item">Attendance</button>
+  <div class="topbar-right">
+    <div class="user-chip">
+      <div class="user-avatar">JB</div>
+      <span class="user-name">Jao Beronio · Treasurer</span>
+    </div>
+  </div>
+</header>
+
+<!-- ══ REPORT TABS ════════════════════════════ -->
+<div class="report-tabs">
+  <button class="rtab active" onclick="switchR('sor',this)">Summary of Receipts</button>
+  <button class="rtab" onclick="switchR('logs',this)">Logs <span class="chip-placeholder">Placeholder</span></button>
+  <button class="rtab" onclick="switchR('liquidation',this)">Liquidation <span class="chip-placeholder">Placeholder</span></button>
+</div>
+
+<!-- ══ MAIN AREA ══════════════════════════════ -->
+<div class="main-area">
+
+  <!-- ── SOR SCREEN ──────────────────────────── -->
+  <div id="sor" class="r-screen active">
+
+    <!-- Left panel -->
+    <div class="sor-left">
+
+      <!-- View tabs -->
+      <div class="view-tabs">
+        <button class="vtab active" onclick="switchV('ui',this)">On-screen report</button>
+        <button class="vtab" onclick="switchV('print',this)">Print document</button>
+      </div>
+
+      <!-- ── ON-SCREEN ── -->
+      <div id="ui" class="v-screen active">
+
+        <div class="sor-head-row">
+          <div>
+            <div class="sor-org">College of Information Sciences and Computing Student Council (CSCo)</div>
+            <div class="sor-meta">
+              <span>1st Semester · AY 2024–2025</span>
+              <span>539 total members</span>
+              <span>OR range: CSCo-00001 – CSCo-00539</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0;margin-left:16px">
+            <button class="btn btn-ghost">Filter</button>
+            <button class="btn btn-primary">↓ Export PDF</button>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stat-grid">
+          <div class="stat"><div class="stat-lbl">Receipts issued</div><div class="stat-val">456</div></div>
+          <div class="stat"><div class="stat-lbl">Total collected</div><div class="stat-val green">₱441,500</div></div>
+          <div class="stat"><div class="stat-lbl">Regular</div><div class="stat-val">420</div></div>
+          <div class="stat"><div class="stat-lbl">Irregular</div><div class="stat-val">8</div></div>
+          <div class="stat"><div class="stat-lbl">Extendee</div><div class="stat-val">13</div></div>
+          <div class="stat"><div class="stat-lbl">Partial</div><div class="stat-val amber">10</div></div>
+          <div class="stat"><div class="stat-lbl">Fines</div><div class="stat-val">5</div></div>
+          <div class="stat"><div class="stat-lbl">Voided</div><div class="stat-val muted">0</div></div>
+        </div>
+
+        <!-- Collection breakdown -->
+        <div class="card">
+          <div class="card-head">Collection breakdown by type</div>
+          <div class="card-body" style="padding-bottom:4px">
+            <div class="type-row">
+              <div class="type-left"><span class="badge b-reg">Regular</span><span class="type-desc">₱1,000.00 per member</span></div>
+              <div class="type-right"><span class="type-ct">420 receipts</span><span class="type-amt">₱420,000.00</span></div>
+            </div>
+            <div class="type-row">
+              <div class="type-left"><span class="badge b-irr">Irregular</span><span class="type-desc">₱700.00 / ₱500.00</span></div>
+              <div class="type-right"><span class="type-ct">8 receipts</span><span class="type-amt">₱5,200.00</span></div>
+            </div>
+            <div class="type-row">
+              <div class="type-left"><span class="badge b-ext">Extendee</span><span class="type-desc">₱500.00 per member</span></div>
+              <div class="type-right"><span class="type-ct">13 receipts</span><span class="type-amt">₱6,500.00</span></div>
+            </div>
+            <div class="type-row">
+              <div class="type-left"><span class="badge b-par">Partial</span><span class="type-desc">Partial payments — outstanding balance</span></div>
+              <div class="type-right"><span class="type-ct">10 receipts</span><span class="type-amt">₱6,800.00</span></div>
+            </div>
+            <div class="type-row">
+              <div class="type-left"><span class="badge b-fin">Fines</span><span class="type-desc">Absence-based, per event</span></div>
+              <div class="type-right"><span class="type-ct">5 receipts</span><span class="type-amt">₱3,000.00</span></div>
+            </div>
+            <div class="type-row">
+              <div class="type-left"><span class="badge b-voi">Voided</span><span class="type-desc">—</span></div>
+              <div class="type-right"><span class="type-ct">0 receipts</span><span class="type-amt" style="color:var(--text-3)">₱0.00</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Batch table -->
+        <div class="card">
+          <div class="card-head">Receipt batch summary</div>
+          <div style="overflow-x:auto">
+            <table class="btable">
+              <thead>
+                <tr>
+                  <th style="text-align:left;width:100px">OR Range</th>
+                  <th>Regular</th>
+                  <th>Irregular</th>
+                  <th>Extendee</th>
+                  <th>Partial</th>
+                  <th>Fines</th>
+                  <th>Voided</th>
+                  <th>Count</th>
+                  <th style="width:100px">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>001 – 050</td><td>44</td><td>2</td><td>3</td><td>1</td><td>0</td><td>0</td><td>50</td><td>₱47,900</td></tr>
+                <tr><td>051 – 100</td><td>46</td><td>1</td><td>2</td><td>1</td><td>0</td><td>0</td><td>50</td><td>₱48,200</td></tr>
+                <tr><td>101 – 150</td><td>45</td><td>2</td><td>2</td><td>1</td><td>0</td><td>0</td><td>50</td><td>₱48,000</td></tr>
+                <tr><td>151 – 200</td><td>47</td><td>1</td><td>2</td><td>0</td><td>0</td><td>0</td><td>50</td><td>₱48,500</td></tr>
+                <tr><td>201 – 250</td><td>45</td><td>1</td><td>2</td><td>2</td><td>0</td><td>0</td><td>50</td><td>₱47,800</td></tr>
+                <tr><td>251 – 300</td><td>44</td><td>1</td><td>1</td><td>2</td><td>2</td><td>0</td><td>50</td><td>₱47,600</td></tr>
+                <tr><td>301 – 350</td><td>47</td><td>0</td><td>1</td><td>2</td><td>0</td><td>0</td><td>50</td><td>₱48,200</td></tr>
+                <tr><td>351 – 400</td><td>48</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td><td>50</td><td>₱49,100</td></tr>
+                <tr><td>401 – 456</td><td>54</td><td>0</td><td>0</td><td>0</td><td>2</td><td>0</td><td>56</td><td>₱56,200</td></tr>
+                <tr><td><strong>Total</strong></td><td><strong>420</strong></td><td><strong>8</strong></td><td><strong>13</strong></td><td><strong>10</strong></td><td><strong>5</strong></td><td><strong>0</strong></td><td><strong>456</strong></td><td><strong>₱441,500</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Signatures -->
+        <div class="sig-row">
+          <div class="sig-block">
+            <div class="sig-lbl">Prepared by</div>
+            <div class="sig-name">JAO T. BERONIO</div>
+            <div class="sig-role">Treasurer · CSCo</div>
+          </div>
+          <div class="sig-block">
+            <div class="sig-lbl">Checked by</div>
+            <div class="sig-name" style="color:var(--text-3)">— not yet signed —</div>
+            <div class="sig-role">Office of Student Affairs · CMU</div>
+          </div>
+        </div>
+
+      </div><!-- /ui -->
+
+      <!-- ── PRINT DOC ── -->
+      <div id="print" class="v-screen">
+        <div class="print-wrap">
+          <div class="pdoc">
+            <div class="pdoc-header">
+              <div class="pdoc-uni">Central Mindanao University · Office of Student Affairs</div>
+              <div class="pdoc-title">Summary of Receipts</div>
+              <div class="pdoc-sub">Official financial collection report · For OSA submission</div>
+            </div>
+
+            <div class="pdoc-org">
+              <div class="pdoc-org-lbl">Name of organization</div>
+              <div class="pdoc-org-name">College of Information Sciences and Computing Student Council (CSCo)</div>
+            </div>
+
+            <div class="pdoc-meta">
+              <span><b>Academic Year:</b> 2024–2025</span>
+              <span><b>Semester:</b> 1st Semester</span>
+              <span><b>Total Members:</b> 539</span>
+              <span><b>Date Prepared:</b> ____________</span>
+            </div>
+            <div class="pdoc-meta" style="margin-bottom:14px">
+              <span><b>Regular rate:</b> ₱1,000.00</span>
+              <span><b>Irregular rate:</b> ₱700.00 / ₱500.00</span>
+              <span><b>Extendee rate:</b> ₱500.00</span>
+              <span><b>OR series:</b> CSCo-00001 – CSCo-00539</span>
+            </div>
+
+            <!-- Summary cards (6 cols) -->
+            <div class="pdoc-cards">
+              <div class="pcard"><div class="pcard-lbl">Receipts</div><div class="pcard-val">456</div></div>
+              <div class="pcard"><div class="pcard-lbl">Total</div><div class="pcard-val">₱441,500</div></div>
+              <div class="pcard"><div class="pcard-lbl">Regular</div><div class="pcard-val">420</div><div class="pcard-sub">₱420,000</div></div>
+              <div class="pcard"><div class="pcard-lbl">Irregular</div><div class="pcard-val">8</div><div class="pcard-sub">₱5,200</div></div>
+              <div class="pcard"><div class="pcard-lbl">Extendee</div><div class="pcard-val">13</div><div class="pcard-sub">₱6,500</div></div>
+              <div class="pcard"><div class="pcard-lbl">Partial</div><div class="pcard-val">10</div><div class="pcard-sub">₱6,800</div></div>
+            </div>
+
+            <table class="ptable">
+              <thead>
+                <tr>
+                  <th style="width:80px">OR Range</th>
+                  <th>Breakdown</th>
+                  <th style="width:70px">Receipts</th>
+                  <th style="width:90px">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Batch 001–050 -->
+                <tr><td rowspan="3" style="vertical-align:middle;font-weight:700">001–050</td><td><span class="pill p-r">Regular</span> 44 receipts</td><td style="text-align:right">44</td><td style="text-align:right">₱44,000.00</td></tr>
+                <tr><td><span class="pill p-i">Irregular</span> 2 receipts</td><td style="text-align:right">2</td><td style="text-align:right">₱1,400.00</td></tr>
+                <tr><td><span class="pill p-e">Extendee</span> 3 receipts · <span class="pill p-p">Partial</span> 1 receipt</td><td style="text-align:right">4</td><td style="text-align:right">₱2,500.00</td></tr>
+                <tr class="sub"><td></td><td>Batch total</td><td style="text-align:right">50</td><td style="text-align:right">₱47,900.00</td></tr>
+
+                <!-- Batch 051–100 -->
+                <tr><td rowspan="2" style="vertical-align:middle;font-weight:700">051–100</td><td><span class="pill p-r">Regular</span> 46 receipts</td><td style="text-align:right">46</td><td style="text-align:right">₱46,000.00</td></tr>
+                <tr><td><span class="pill p-i">Irregular</span> 1 receipt · <span class="pill p-e">Extendee</span> 2 receipts · <span class="pill p-p">Partial</span> 1 receipt</td><td style="text-align:right">4</td><td style="text-align:right">₱2,200.00</td></tr>
+                <tr class="sub"><td></td><td>Batch total</td><td style="text-align:right">50</td><td style="text-align:right">₱48,200.00</td></tr>
+
+                <!-- Continuation note -->
+                <tr><td colspan="4" style="text-align:center;padding:6px;font-size:9px;color:#bbb;font-style:italic">· · · batches 101–400 follow same format · · ·</td></tr>
+
+                <!-- Batch 401–456 -->
+                <tr><td style="font-weight:700">401–456</td><td><span class="pill p-r">Regular</span> 54 receipts · <span class="pill p-f">Fines</span> 2 receipts</td><td style="text-align:right">56</td><td style="text-align:right">₱56,200.00</td></tr>
+                <tr class="sub"><td></td><td>Batch total</td><td style="text-align:right">56</td><td style="text-align:right">₱56,200.00</td></tr>
+
+                <tr class="grand"><td colspan="2">Overall total</td><td style="text-align:right">456</td><td style="text-align:right">₱441,500.00</td></tr>
+              </tbody>
+            </table>
+
+            <div class="pdoc-sig">
+              <div class="psc">
+                <div class="psc-line">JAO T. BERONIO</div>
+                <div class="psc-role">Treasurer · CSCo</div>
+              </div>
+              <div class="psc">
+                <div class="psc-line">_______________________</div>
+                <div class="psc-role">Checked by · OSA Representative</div>
+              </div>
+              <div class="psc">
+                <div class="psc-line">_______________________</div>
+                <div class="psc-role">Noted by · Adviser / Dean</div>
+              </div>
+            </div>
+
+            <div class="pdoc-foot">
+              Generated by FCATS · Fee Collection and Tracking System · Central Mindanao University ·
+              Printed on ____________ · This document is system-generated.
+            </div>
+          </div>
+        </div>
+      </div><!-- /print -->
+
+    </div><!-- /sor-left -->
+
+    <!-- Right: Receipt preview -->
+    <div class="sor-right">
+      <div class="rcpt-header-bar">
+        <span>Receipt preview</span>
+        <span style="font-size:10px;font-weight:400;color:var(--text-3)">Sample · OR CSCo-00237</span>
+      </div>
+
+      <!-- Receipt type tabs -->
+      <div class="rcpt-tabs">
+        <button class="rctab active" onclick="switchRC('full',this)">Fully Paid</button>
+        <button class="rctab" onclick="switchRC('partial',this)">Partial</button>
+        <button class="rctab" onclick="switchRC('fine',this)">Fine</button>
+      </div>
+
+      <!-- FULLY PAID receipt -->
+      <div id="full" class="rc-screen active">
+        <div class="receipt">
+          <div class="r-head">
+            <div class="r-logo">CMU</div>
+            <div class="r-uni">Central Mindanao University</div>
+            <div class="r-college">College of Info. Sciences &amp; Computing</div>
+            <div class="r-council">CSCo Student Council</div>
+            <div class="r-title">OFFICIAL RECEIPT</div>
+          </div>
+          <div class="r-meta">
+            <div class="r-mrow"><span class="r-mlbl">OR No.</span><span class="r-mval">CSCo-00237</span></div>
+            <div class="r-mrow"><span class="r-mlbl">Date</span><span class="r-mval">May 11, 2025</span></div>
+            <div class="r-mrow"><span class="r-mlbl">Semester</span><span class="r-mval">1st Sem 2024–2025</span></div>
+          </div>
+          <div class="r-student">
+            <div class="r-irow"><span class="r-ilbl">Student Name</span><span class="r-ival">Carlos Fidel G. Castro</span></div>
+            <div class="r-irow"><span class="r-ilbl">Student No.</span><span class="r-ival">2022301108</span></div>
+            <div class="r-irow"><span class="r-ilbl">Program</span><span class="r-ival">BS Information Technology</span></div>
+            <div class="r-irow"><span class="r-ilbl">Year Level</span><span class="r-ival">2nd Year</span></div>
+          </div>
+          <div class="r-tx">
+            <div class="r-txtype">Membership Fee</div>
+            <div class="r-drow"><span class="r-dlbl">Fee Category</span><span class="r-dval">Regular</span></div>
+            <div class="r-drow"><span class="r-dlbl">Description</span><span class="r-dval">CSCo Membership Fee</span></div>
+            <div class="r-breakdown">
+              <div class="r-brow"><span class="r-blbl">Total Amount Due</span><span class="r-bval">₱1,000.00</span></div>
+              <div class="r-brow"><span class="r-blbl">Prev. Payments</span><span class="r-bval">₱0.00</span></div>
+              <div class="r-brow"><span class="r-blbl">Amount Paid (This OR)</span><span class="r-bval">₱1,000.00</span></div>
+              <div class="r-brow"><span class="r-blbl">Balance Remaining</span><span class="r-bval green">₱0.00</span></div>
+              <div style="text-align:center"><span class="status-pill sp-full">✓ Fully Paid</span></div>
+            </div>
+          </div>
+          <div class="r-pay">
+            <div class="r-prow"><strong>Payment Method:</strong> GCash</div>
+            <div class="r-prow"><strong>Reference No.:</strong> 1234567890</div>
+          </div>
+          <div class="r-total">
+            <div class="r-total-lbl">Total Amount Paid</div>
+            <div class="r-total-amt">₱1,000.00</div>
+            <div class="r-total-words">One Thousand Pesos Only</div>
+          </div>
+          <div class="r-officer">
+            <div class="r-olbl">Received by</div>
+            <div class="r-oname">Jao T. Beronio</div>
+            <div class="r-orole">Treasurer · CSCo</div>
+            <div class="r-osig">Signature over printed name</div>
+          </div>
+          <div class="r-foot">This is a system-generated receipt.<br>Void transactions are subject to Chairperson approval.</div>
+        </div>
+      </div>
+
+      <!-- PARTIAL receipt -->
+      <div id="partial" class="rc-screen">
+        <div class="receipt">
+          <div class="r-head">
+            <div class="r-logo">CMU</div>
+            <div class="r-uni">Central Mindanao University</div>
+            <div class="r-college">College of Info. Sciences &amp; Computing</div>
+            <div class="r-council">CSCo Student Council</div>
+            <div class="r-title">OFFICIAL RECEIPT</div>
+          </div>
+          <div class="r-meta">
+            <div class="r-mrow"><span class="r-mlbl">OR No.</span><span class="r-mval">CSCo-00301</span></div>
+            <div class="r-mrow"><span class="r-mlbl">Date</span><span class="r-mval">May 11, 2025</span></div>
+            <div class="r-mrow"><span class="r-mlbl">Semester</span><span class="r-mval">1st Sem 2024–2025</span></div>
+          </div>
+          <div class="r-student">
+            <div class="r-irow"><span class="r-ilbl">Student Name</span><span class="r-ival">Maria L. Santos</span></div>
+            <div class="r-irow"><span class="r-ilbl">Student No.</span><span class="r-ival">2023104521</span></div>
+            <div class="r-irow"><span class="r-ilbl">Program</span><span class="r-ival">BS Computer Science</span></div>
+            <div class="r-irow"><span class="r-ilbl">Year Level</span><span class="r-ival">1st Year</span></div>
+          </div>
+          <div class="r-tx">
+            <div class="r-txtype">Membership Fee — Partial Payment</div>
+            <div class="r-drow"><span class="r-dlbl">Fee Category</span><span class="r-dval">Regular</span></div>
+            <div class="r-drow"><span class="r-dlbl">Description</span><span class="r-dval">CSCo Membership Fee</span></div>
+            <div class="r-breakdown">
+              <div class="r-brow"><span class="r-blbl">Total Amount Due</span><span class="r-bval">₱1,000.00</span></div>
+              <div class="r-brow"><span class="r-blbl">Prev. Payments</span><span class="r-bval">₱0.00</span></div>
+              <div class="r-brow"><span class="r-blbl">Amount Paid (This OR)</span><span class="r-bval">₱500.00</span></div>
+              <div class="r-brow"><span class="r-blbl">Balance Remaining</span><span class="r-bval red">₱500.00</span></div>
+              <div style="text-align:center"><span class="status-pill sp-partial">⏳ Partial Payment</span></div>
+            </div>
+          </div>
+          <div class="r-pay">
+            <div class="r-prow"><strong>Payment Method:</strong> Cash</div>
+            <div class="r-prow"><strong>Reference No.:</strong> —</div>
+          </div>
+          <div class="r-total">
+            <div class="r-total-lbl">Amount Paid This Receipt</div>
+            <div class="r-total-amt">₱500.00</div>
+            <div class="r-total-words">Five Hundred Pesos Only</div>
+          </div>
+          <div class="r-officer">
+            <div class="r-olbl">Received by</div>
+            <div class="r-oname">Jao T. Beronio</div>
+            <div class="r-orole">Treasurer · CSCo</div>
+            <div class="r-osig">Signature over printed name</div>
+          </div>
+          <div class="r-foot">
+            This is a system-generated receipt.<br>
+            <strong style="color:#7A4800">Partial payment — remaining balance of ₱500.00 must be settled before end of semester.</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- FINE receipt -->
+      <div id="fine" class="rc-screen">
+        <div class="receipt">
+          <div class="r-head">
+            <div class="r-logo">CMU</div>
+            <div class="r-uni">Central Mindanao University</div>
+            <div class="r-college">College of Info. Sciences &amp; Computing</div>
+            <div class="r-council">CSCo Student Council</div>
+            <div class="r-title">OFFICIAL RECEIPT</div>
+          </div>
+          <div class="r-meta">
+            <div class="r-mrow"><span class="r-mlbl">OR No.</span><span class="r-mval">CSCo-00388</span></div>
+            <div class="r-mrow"><span class="r-mlbl">Date</span><span class="r-mval">May 11, 2025</span></div>
+            <div class="r-mrow"><span class="r-mlbl">Semester</span><span class="r-mval">1st Sem 2024–2025</span></div>
+          </div>
+          <div class="r-student">
+            <div class="r-irow"><span class="r-ilbl">Student Name</span><span class="r-ival">Juan D. Reyes</span></div>
+            <div class="r-irow"><span class="r-ilbl">Student No.</span><span class="r-ival">2021209834</span></div>
+            <div class="r-irow"><span class="r-ilbl">Program</span><span class="r-ival">BS Information Systems</span></div>
+            <div class="r-irow"><span class="r-ilbl">Year Level</span><span class="r-ival">3rd Year</span></div>
+          </div>
+          <div class="r-tx">
+            <div class="r-txtype">Absence Fine</div>
+            <div class="r-drow"><span class="r-dlbl">Events Covered</span><span class="r-dval">3 events</span></div>
+            <div class="r-drow"><span class="r-dlbl">Slots Missed</span><span class="r-dval">6 signatures</span></div>
+            <div class="r-drow"><span class="r-dlbl">Fine Rate</span><span class="r-dval">₱50.00 / event</span></div>
+            <div class="r-breakdown">
+              <div class="r-brow"><span class="r-blbl">Total Outstanding Fines</span><span class="r-bval">₱150.00</span></div>
+              <div class="r-brow"><span class="r-blbl">Amount Paid (This OR)</span><span class="r-bval">₱150.00</span></div>
+              <div class="r-brow"><span class="r-blbl">Balance Remaining</span><span class="r-bval green">₱0.00</span></div>
+              <div style="text-align:center"><span class="status-pill sp-full">✓ Fully Settled</span></div>
+            </div>
+          </div>
+          <div class="r-pay">
+            <div class="r-prow"><strong>Payment Method:</strong> Cash</div>
+            <div class="r-prow"><strong>Reference No.:</strong> —</div>
+          </div>
+          <div class="r-total">
+            <div class="r-total-lbl">Total Amount Paid</div>
+            <div class="r-total-amt">₱150.00</div>
+            <div class="r-total-words">One Hundred Fifty Pesos Only</div>
+          </div>
+          <div class="r-officer">
+            <div class="r-olbl">Received by</div>
+            <div class="r-oname">Jao T. Beronio</div>
+            <div class="r-orole">Treasurer · CSCo</div>
+            <div class="r-osig">Signature over printed name</div>
+          </div>
+          <div class="r-foot">This is a system-generated receipt.<br>Fines must be paid in full. Void subject to Chairperson approval.</div>
+        </div>
+      </div>
+
+    </div><!-- /sor-right -->
+  </div><!-- /sor screen -->
+
+  <!-- ── LOGS PLACEHOLDER ────────────────────── -->
+  <div id="logs" class="r-screen">
+    <div class="placeholder">
+      <div class="ph-icon">📋</div>
+      <div class="ph-title">Audit Logs</div>
+      <div class="ph-sub">This section is under development and will display a searchable, filterable log of all system actions across your organization.</div>
+    </div>
+  </div>
+
+  <!-- ── LIQUIDATION PLACEHOLDER ─────────────── -->
+  <div id="liquidation" class="r-screen">
+    <div class="placeholder">
+      <div class="ph-icon">💰</div>
+      <div class="ph-title">Liquidation Report</div>
+      <div class="ph-sub">This section is under development and will generate the semester liquidation document for OSA submission.</div>
+    </div>
+  </div>
+
+</div><!-- /main-area -->
+</div><!-- /app-shell -->
+
+<script>
+function switchR(id, btn) {
+  document.querySelectorAll('.r-screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+function switchV(id, btn) {
+  document.querySelectorAll('.v-screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.vtab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+function switchRC(id, btn) {
+  document.querySelectorAll('.rc-screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.rctab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>

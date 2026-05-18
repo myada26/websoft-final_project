@@ -17,7 +17,10 @@
    - [Module 6 — Cash Management (Remittance)](#module-6--cash-management-remittance)
    - [Module 7 — Reporting](#module-7--reporting)
    - [Module 8 — Attendance & Absence Fine Management](#module-8--attendance--absence-fine-management)
+<<<<<<< HEAD
    - [Module 9 — Email Receipt Delivery](#module-9--email-receipt-delivery)
+=======
+>>>>>>> e0832a04bc0094c0a85c82cbc749a9a830eae413
 2. [Non-Functional Requirements](#non-functional-requirements)
 3. [Database Schema](#database-schema)
 4. [Relationships](#relationships)
@@ -457,6 +460,7 @@ Officer clicks "Create Remittance"
 
 ---
 
+<<<<<<< HEAD
 ### Module 9 — Email Receipt Delivery
 
 #### FR-0031 · Automatic Email Receipt Delivery
@@ -496,6 +500,8 @@ Officer clicks "Create Remittance"
 
 ---
 
+=======
+>>>>>>> e0832a04bc0094c0a85c82cbc749a9a830eae413
 ## Non-Functional Requirements
 
 ---
@@ -796,7 +802,10 @@ Step 4: Confirm → Receipt generated
 | `first_name` | String | |
 | `last_name` | String | |
 | `middle_name` | String | Nullable |
+<<<<<<< HEAD
 | `email` | String | Nullable — For receipt delivery (FR-0031) |
+=======
+>>>>>>> e0832a04bc0094c0a85c82cbc749a9a830eae413
 | `created_source` | Enum | `SSC_BULK` · `MANUAL` |
 | `created_at` | Datetime | |
 | `updated_at` | Datetime | |
